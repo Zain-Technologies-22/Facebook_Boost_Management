@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}FBoost - Boost Your Social Media Presence{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section py-5 text-center bg-primary text-white">
+    <div class="container">
+        <h1 class="display-4">Boost Your Social Media Impact</h1>
+        <p class="lead">Enhance your social media presence with our powerful engagement platform</p>
+        <a href="{% url 'signup' %}" class="btn btn-light btn-lg">Get Started Free</a>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container py-5">
+    <h2 class="text-center mb-5">Why Choose FBoost?</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up display-4 text-primary mb-3"></i>
+                    <h3>Real Engagement</h3>
+                    <p>Get authentic engagement from real users to boost your social media presence</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-check display-4 text-primary mb-3"></i>
+                    <h3>Safe & Secure</h3>
+                    <p>Our platform follows all social media guidelines to keep your account safe</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-lightning-charge display-4 text-primary mb-3"></i>
+                    <h3>Fast Results</h3>
+                    <p>See meaningful results within hours of starting your campaign</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row">
+            <div class="col-md-3 text-center mb-4">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <h3 class="m-0">1</h3>
+                </div>
+                <h4>Sign Up</h4>
+                <p>Create your free account</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <h3 class="m-0">2</h3>
+                </div>
+                <h4>Add Credits</h4>
+                <p>Purchase engagement credits</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <h3 class="m-0">3</h3>
+                </div>
+                <h4>Create Campaign</h4>
+                <p>Set up your engagement campaign</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <h3 class="m-0">4</h3>
+                </div>
+                <h4>See Results</h4>
+                <p>Watch your engagement grow</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Testimonials -->
+<div class="container py-5">
+    <h2 class="text-center mb-5">What Our Users Say</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="card-text">"FBoost helped me grow my Instagram following by 300% in just two months!"</p>
+                    <footer class="blockquote-footer">Sarah J., Influencer</footer>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="card-text">"The best platform for genuine social media growth. Highly recommended!"</p>
+                    <footer class="blockquote-footer">Mike R., Business Owner</footer>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="card-text">"Easy to use and amazing results. Exactly what I needed for my brand."</p>
+                    <footer class="blockquote-footer">Lisa T., Content Creator</footer>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="bg-primary text-white text-center py-5">
+    <div class="container">
+        <h2>Ready to Boost Your Social Media Presence?</h2>
+        <p class="lead">Join thousands of satisfied users and start growing your audience today</p>
+        <a href="{% url 'signup' %}" class="btn btn-light btn-lg mt-3">Get Started Now</a>
+    </div>
+</div>
+{% endblock %}
