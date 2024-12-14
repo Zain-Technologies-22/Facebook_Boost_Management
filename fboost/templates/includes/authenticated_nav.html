@@ -1,0 +1,71 @@
+<!-- credits/templates/includes/authenticated_nav.html -->
+
+<ul class="navbar-nav ms-auto">
+    <!-- Notifications -->
+    <li class="nav-item dropdown me-3">
+        <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-bell"></i>
+            {% if unread_notifications_count %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_notifications_count }}
+                <span class="visually-hidden">unread notifications</span>
+            </span>
+            {% endif %}
+        </a>
+        <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+            {% if notifications %}
+                {% for notification in notifications|slice:":5" %}
+                <a class="dropdown-item" href="{{ notification.url }}">
+                    <small class="text-muted">{{ notification.timestamp|timesince }} ago</small>
+                    <p class="mb-0">{{ notification.message }}</p>
+                </a>
+                {% endfor %}
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item text-center" href="{% url 'notifications' %}">View all</a>
+            {% else %}
+                <div class="dropdown-item text-center">No new notifications</div>
+            {% endif %}
+        </div>
+    </li>
+
+    <!-- Credits/Balance -->
+    <li class="nav-item me-3">
+        <a class="nav-link" href="{% url 'view_credits' %}">
+            <i class="bi bi-wallet2"></i>
+            <span class="ms-1">{{ credit.balance|default:"0" }} Credits</span>
+        </a>
+    </li>
+
+    <!-- User Menu -->
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+            {% else %}
+                <i class="bi bi-person-circle me-2"></i>
+            {% endif %}
+            <span class="d-none d-lg-inline">{{ user.username }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="{% url 'profile' %}">
+                    <i class="bi bi-person me-2"></i>Profile
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="{% url 'settings' %}">
+                    <i class="bi bi-gear me-2"></i>Settings
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+</ul>

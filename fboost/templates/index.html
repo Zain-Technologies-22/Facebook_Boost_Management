@@ -1,18 +1,44 @@
+<!-- templates/index.html -->
+
 {% extends 'base.html' %}
+{% load static %}
 {% load django_bootstrap5 %}
 
 {% block title %}FBoost - Boost Your Social Media Presence{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<div class="hero-section py-5 text-center bg-primary text-white">
-    <div class="container">
-        <h1 class="display-4">Boost Your Social Media Impact</h1>
-        <p class="lead">Enhance your social media presence with our powerful engagement platform</p>
-        <a href="{% url 'signup' %}" class="btn btn-light btn-lg">Get Started Free</a>
+<div class="hero-section py-5 text-center bg-gradient position-relative overflow-hidden">
+    <div class="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-75"></div>
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-lg-start">
+                <h1 class="display-4 fw-bold mb-4">Transform Your Social Media Impact</h1>
+                <p class="lead mb-4">Leverage AI-powered engagement strategies to grow your audience organically</p>
+                <div class="d-flex gap-3 justify-content-lg-start justify-content-center">
+                    <a href="{% url 'signup' %}" class="btn btn-light btn-lg">Get Started Free</a>
+                    <a href="#how-it-works" class="btn btn-outline-light btn-lg">Learn More</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="{% static 'img/Social.JPG' %}" class="img-fluid" alt="Social Media Growth">
+            {% comment %} <img src="https://via.placeholder.com/600x400" class="img-fluid" alt="Social Media Growth"> {% endcomment %}
+            </div>
+        </div>
     </div>
 </div>
-
+<!-- Add statistics section -->
+<div class="py-4 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <h2 class="display-4 fw-bold text-primary">50K+</h2>
+                <p>Active Users</p>
+            </div>
+            <!-- Add more statistics as needed -->
+        </div>
+    </div>
+</div>
 <!-- Features Section -->
 <div class="container py-5">
     <h2 class="text-center mb-5">Why Choose FBoost?</h2>
@@ -85,6 +111,7 @@
 </div>
 
 <!-- Testimonials -->
+<div class="testimonials-carousel">
 <div class="container py-5">
     <h2 class="text-center mb-5">What Our Users Say</h2>
     <div class="row">
@@ -114,7 +141,7 @@
         </div>
     </div>
 </div>
-
+</div>
 <!-- CTA Section -->
 <div class="bg-primary text-white text-center py-5">
     <div class="container">

@@ -1,0 +1,270 @@
+<!-- api-docs.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}API Documentation - FBoost{% endblock %}
+
+{% block content %}
+<div class="api-docs-container">
+    <!-- Header Section -->
+    <div class="bg-primary text-white py-4 mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-2">API Documentation</h1>
+                    <p class="mb-0">Learn how to integrate with our API</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="btn btn-light me-2">
+                        <i class="bi bi-key me-2"></i>Get API Key
+                    </a>
+                    <a href="#" class="btn btn-outline-light">
+                        <i class="bi bi-github me-2"></i>View on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- API Documentation Sidebar -->
+            <div class="col-lg-3">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="api-docs-nav">
+                            <h6 class="text-uppercase text-muted mb-3">Getting Started</h6>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="#introduction">Introduction</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#authentication">Authentication</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#rate-limits">Rate Limits</a>
+                                </li>
+                            </ul>
+
+                            <h6 class="text-uppercase text-muted mb-3 mt-4">Endpoints</h6>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#campaigns">Campaigns</a>
+                                    <ul class="nav flex-column ms-3">
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#list-campaigns">List Campaigns</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#create-campaign">Create Campaign</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#update-campaign">Update Campaign</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#analytics">Analytics</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#webhooks">Webhooks</a>
+                                </li>
+                            </ul>
+
+                            <h6 class="text-uppercase text-muted mb-3 mt-4">Resources</h6>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#sdks">SDKs & Libraries</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#examples">Code Examples</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#changelog">Changelog</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Documentation Content -->
+            <div class="col-lg-9">
+                <!-- Introduction Section -->
+                <div class="card mb-4" id="introduction">
+                    <div class="card-body">
+                        <h4>Introduction</h4>
+                        <p>Welcome to the FBoost API documentation. Our API enables you to programmatically access and manage your campaigns, analytics, and more.</p>
+                        
+                        <h5 class="mt-4">Base URL</h5>
+                        <div class="api-endpoint mb-3">
+                            <code class="d-block p-3 bg-light rounded">
+                                https://api.fboost.com/v1
+                            </code>
+                        </div>
+
+                        <h5 class="mt-4">API Versioning</h5>
+                        <p>The current version is v1. When we make backwards-incompatible changes to the API, we release a new version number.</p>
+                    </div>
+                </div>
+
+                <!-- Authentication Section -->
+                <div class="card mb-4" id="authentication">
+                    <div class="card-body">
+                        <h4>Authentication</h4>
+                        <p>Authentication to the API is performed via HTTP Bearer token.</p>
+
+                        <div class="code-example mt-3">
+                            <div class="code-header d-flex justify-content-between align-items-center p-2 bg-light rounded-top">
+                                <span>Example Request</span>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="copyCode(this)">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                            <pre class="language-bash"><code>curl -X GET "https://api.fboost.com/v1/campaigns" \
+    -H "Authorization: Bearer YOUR_API_KEY" \
+    -H "Content-Type: application/json"</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rate Limits Section -->
+                <div class="card mb-4" id="rate-limits">
+                    <div class="card-body">
+                        <h4>Rate Limits</h4>
+                        <p>The API has rate limits based on your plan:</p>
+
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Plan</th>
+                                        <th>Rate Limit</th>
+                                        <th>Burst Limit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Free</td>
+                                        <td>60 requests/hour</td>
+                                        <td>10 requests/minute</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Pro</td>
+                                        <td>1000 requests/hour</td>
+                                        <td>100 requests/minute</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Enterprise</td>
+                                        <td>Custom</td>
+                                        <td>Custom</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Endpoints Section -->
+                <div class="card mb-4" id="campaigns">
+                    <div class="card-body">
+                        <h4>Campaigns</h4>
+                        <p>Manage your marketing campaigns through the API.</p>
+
+                        <!-- List Campaigns -->
+                        <div class="endpoint-section mb-4" id="list-campaigns">
+                            <h5>List Campaigns</h5>
+                            <div class="endpoint-info">
+                                <span class="badge bg-success">GET</span>
+                                <code>/campaigns</code>
+                            </div>
+
+                            <h6 class="mt-3">Parameters</h6>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>status</td>
+                                            <td>string</td>
+                                            <td>Filter by campaign status (active, paused, completed)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>limit</td>
+                                            <td>integer</td>
+                                            <td>Number of records to return (default: 10, max: 100)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="code-example mt-3">
+                                <div class="code-header d-flex justify-content-between align-items-center p-2 bg-light rounded-top">
+                                    <span>Example Response</span>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyCode(this)">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                                <pre class="language-json"><code>{
+    "data": [
+        {
+            "id": "camp_123",
+            "name": "Summer Sale 2024",
+            "status": "active",
+            "start_date": "2024-06-01T00:00:00Z",
+            "end_date": "2024-06-30T23:59:59Z"
+        }
+    ],
+    "meta": {
+        "total": 1,
+        "page": 1,
+        "limit": 10
+    }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Code copying functionality
+    function copyCode(button) {
+        const codeBlock = button.closest('.code-example').querySelector('code');
+        const textArea = document.createElement('textarea');
+        textArea.value = codeBlock.textContent;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        // Update button text temporarily
+        const originalHtml = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-check"></i>';
+        setTimeout(() => {
+            button.innerHTML = originalHtml;
+        }, 2000);
+    }
+
+    // Smooth scrolling for navigation
+    document.querySelectorAll('.api-docs-nav a').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            document.querySelector(targetId).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+</script>
+{% endblock %}

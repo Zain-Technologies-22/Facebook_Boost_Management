@@ -1,119 +1,173 @@
-{% load static %}
+<!-- templates/base.html -->
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}FBoost{% endblock %}</title>
+    <meta name="description" content="FBoost - Boost your social media presence with AI-powered engagement">
+    <meta name="keywords" content="social media, engagement, marketing, AI">
+
+    <title>{% block title %}FBoost{% endblock %} - Social Media Growth Platform</title>
+
+    <!-- Favicon -->
     <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.ico' %}">
-    <!-- Bootstrap 5 CSS -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
+
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="{% static 'css/bootstrap.min.css' %}" as="style">
+    <link rel="preload" href="{% static 'js/bootstrap.bundle.min.js' %}" as="script">
+    <link rel="preload" href="{% static 'css/icons/bootstrap-icons.css' %}" as="style">
+
+    <!-- CSS -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
     <link href="{% static 'css/icons/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/django-crispy-forms@1.14.0/media/css/crispy-bootstrap5.min.css" rel="stylesheet">
+
+    <!-- PWA Support -->
+    <meta name="theme-color" content="#0d6efd">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    {% block extra_css %}
     
+         
+    {% endblock %}
+
+
     <!-- HTMX -->
-    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
     
-    <!-- Custom CSS -->
-    {% block extra_css %}{% endblock %}
+    <!-- Dark Mode Support -->
+    <script>
+        if (localStorage.getItem('darkMode') === 'enabled' || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem('darkMode'))) {
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+        }
+    </script>
+
+    
 </head>
-<body class="bg-light">
+<body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container-fluid">
+            {% if user.is_authenticated %}
+            <button id="menuToggle" class="btn btn-outline-light me-2">
+                <i class="bi bi-list"></i>
+                All
+            </button>
+            {% endif %}
+
             <a class="navbar-brand" href="/">
-                <i class="bi bi-rocket-takeoff"></i> FBoost
+                <img src="{% static 'img/logo.svg' %}" alt="FBoost" height="30">
+                <span>FBoost</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">
-                            <i class="bi bi-speedometer2"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'campaigns' %}">
-                            <i class="bi bi-megaphone"></i> Campaigns
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'credits' %}">
-                            <i class="bi bi-coin"></i> Credits
-                        </a>
-                    </li>
-                </ul>
-                
-                <!-- User Menu -->
-                <div class="navbar-nav">
-                    {% if user.is_authenticated %}
-                        <div class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> {{ user.username }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'profile' %}">
-                                        <i class="bi bi-person"></i> Profile
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'settings' %}">
-                                        <i class="bi bi-gear"></i> Settings
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-    <form method="post" action="{% url 'logout' %}" class="dropdown-item p-0">
-        {% csrf_token %}
-        <button type="submit" class="dropdown-item">
-            <i class="bi bi-box-arrow-right"></i> Logout
-        </button>
-    </form>
-</li>
-                            </ul>
-                        </div>
-                    {% else %}
-                        <a class="nav-link" href="{% url 'login' %}">
-                            <i class="bi bi-box-arrow-in-right"></i> Login
-                        </a>
-                    {% endif %}
-                </div>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                {% if user.is_authenticated %}
+                    {% include "includes/authenticated_nav.html" %}
+                {% else %}
+                    {% include "includes/public_nav.html" %}
+                {% endif %}
             </div>
         </div>
     </nav>
+    <!-- Sidebar/Menu Overlay -->
+    <div id="menuOverlay" class="menu-overlay"></div>
 
-    <!-- Main Content -->
-    <div class="container py-4">
-        <!-- Messages/Alerts -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    <!-- Amazon-style Menu -->
+    <div id="sideMenu" class="side-menu">
+        <div class="side-menu-header">
+            <h5 class="mb-0">Menu</h5>
+            <button class="btn-close" id="menuClose"></button>
+        </div>
+        <div class="side-menu-content">
+            {% if user.is_authenticated %}
+                {% include "includes/sidebar.html" %}
+            {% else %}
+                <!-- Public Menu Items -->
+                <div class="menu-section">
+                    <h6>Features</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#"><i class="bi bi-rocket"></i> Social Media Growth</a></li>
+                        <li><a href="#"><i class="bi bi-graph-up"></i> Analytics</a></li>
+                        <li><a href="#"><i class="bi bi-robot"></i> AI-Powered Tools</a></li>
+                    </ul>
+                </div>
+                <div class="menu-section">
+                    <h6>Resources</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#"><i class="bi bi-book"></i> Documentation</a></li>
+                        <li><a href="#"><i class="bi bi-question-circle"></i> Help Center</a></li>
+                        <li><a href="#"><i class="bi bi-people"></i> Community</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+        <!-- Content -->
+        <div id="content">
+            {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-            {% endfor %}
-        {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
 
-        <!-- Page Content -->
-        {% block content %}{% endblock %}
+            {% block content %}{% endblock %}
+        </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer mt-auto py-3 bg-dark text-light">
-        <div class="container text-center">
-            <span>© 2024 FBoost. All rights reserved.</span>
-        </div>
-    </footer>
+    {% include "includes/footer.html" %}
 
-    <!-- Bootstrap JS Bundle -->
+        <!-- Core JavaScript -->
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/django-crispy-forms@1.14.0/media/css/crispy-bootstrap5.min.css">
     
-    <!-- Custom JavaScript -->
-    {% block extra_js %}{% endblock %}
+    <!-- Menu JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menuToggle');
+            const menuClose = document.getElementById('menuClose');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+
+            menuToggle.addEventListener('click', function() {
+                sideMenu.classList.add('active');
+                menuOverlay.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            });
+
+            function closeMenu() {
+                sideMenu.classList.remove('active');
+                menuOverlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            menuClose.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
+        });
+    </script>
+
+    <!-- AJAX for Payment Methods (if using AJAX) -->
+    {% block extra_js %}
+    
+    {% endblock %}
 </body>
- 
 </html>

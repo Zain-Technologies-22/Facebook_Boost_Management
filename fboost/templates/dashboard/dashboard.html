@@ -1,61 +1,316 @@
+<!-- templates/credits/dashboard.html -->
+
 {% extends 'base.html' %}
-{% load django_bootstrap5 %}
+{% load humanize %}
+{% load static %}
 
 {% block title %}Dashboard - FBoost{% endblock %}
 
 {% block content %}
-{% if user.is_authenticated %}
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Active Campaigns</h5>
-                    <h2 class="card-text">5</h2>
+<div class="dashboard-container">
+    <!-- Welcome Header -->
+    <div class="bg-primary text-white py-4 mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-2">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+                    <p class="mb-0">Here's an overview of your account activity</p>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Available Credits</h5>
-                    <h2 class="card-text">1000</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Total Engagements</h5>
-                    <h2 class="card-text">2500</h2>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#newCampaignModal">
+                        <i class="bi bi-plus-circle me-2"></i>New Campaign
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    Recent Activity
+    <div class="container">
+        <!-- Quick Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-primary-soft text-primary rounded-3 p-3 me-3">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Active Campaigns</h6>
+                                <h3 class="mb-0">{{ active_campaigns_count }}</h3>
+                                <small class="text-success">
+                                    <i class="bi bi-arrow-up"></i> 12% increase
+                                </small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <!-- Add your activity list here -->
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-success-soft text-success rounded-3 p-3 me-3">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Total Followers</h6>
+                                <h3 class="mb-0">{{ total_followers|default:"0"|intcomma }}</h3>
+                                <small class="text-success">
+                                    <i class="bi bi-arrow-up"></i> 8% growth
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-warning-soft text-warning rounded-3 p-3 me-3">
+                                <i class="bi bi-lightning"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Engagement Rate</h6>
+                                <h3 class="mb-0">{{ engagement_rate|default:"0" }}%</h3>
+                                <small class="text-success">
+                                    <i class="bi bi-arrow-up"></i> 5% increase
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-info-soft text-info rounded-3 p-3 me-3">
+                                <i class="bi bi-coin"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-1">Available Credits</h6>
+                                <h3 class="mb-0">{{ credit.balance }}</h3>
+                                <a href="{% url 'recharge_balance' %}" class="text-info">
+                                    <small>Add more</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    Quick Actions
+
+        <!-- Main Content Area -->
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Performance Chart -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Performance Overview</h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary active" data-bs-toggle="collapse" data-bs-target="#chartOptionsMonth">Month</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#chartOptionsQuarter">Quarter</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#chartOptionsYear">Year</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart" height="300"></canvas>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'campaigns' %}" class="btn btn-primary">New Campaign</a>
-                        <a href="{% url 'credits' %}" class="btn btn-secondary">Buy Credits</a>
+
+                <!-- Active Campaigns -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Active Campaigns</h5>
+                        <a href="{% url 'campaigns' %}" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if active_campaigns %}
+                            {% for campaign in active_campaigns %}
+                            <div class="campaign-item mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">{{ campaign.name }}</h6>
+                                    <span class="badge bg-success-soft text-success">
+                                        {{ campaign.status }}
+                                    </span>
+                                </div>
+                                <div class="progress mb-2" style="height: 6px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ campaign.progress }}%" 
+                                         aria-valuenow="{{ campaign.progress }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">{{ campaign.progress }}% Complete</small>
+                                    <small class="text-muted">{{ campaign.days_remaining }} days remaining</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-rocket-takeoff display-4 text-muted"></i>
+                                <p class="mt-2">No active campaigns</p>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newCampaignModal">
+                                    Start Your First Campaign
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Quick Actions -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newCampaignModal">
+                                <i class="bi bi-plus-circle me-2"></i>New Campaign
+                            </button>
+                            <a href="{% url 'recharge_balance' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-credit-card me-2"></i>Add Credits
+                            </a>
+                            <a href="{% url 'billing' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-wallet2 me-2"></i>Billing & Subscription
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            {% for activity in recent_activities %}
+                            <div class="timeline-item">
+                                <div class="timeline-icon bg-primary">
+                                    <i class="bi {{ activity.icon }} text-white"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">{{ activity.title }}</h6>
+                                    <p class="text-muted mb-0">{{ activity.description }}</p>
+                                    <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-center text-muted my-4">No recent activity</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Information -->
+                <div class="card mt-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Billing Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Total Billing Transactions:</strong> {{ billing_transactions.count }}</p>
+                        <p><strong>Total Amount Billed:</strong> ৳{{ billing_total|default:"0" }}</p>
+                        <p><strong>Pending Transactions:</strong> {{ billing_pending|default:"0" }}</p>
+                        <a href="{% url 'billing_history' %}" class="btn btn-sm btn-primary">View Billing History</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-{% endif %}
+</div>
+
+<!-- New Campaign Modal -->
+<div class="modal fade" id="newCampaignModal" tabindex="-1" aria-labelledby="newCampaignModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="newCampaignForm" method="post" action="
+            {% comment %} {% url 'create_campaign' %} {% endcomment %}
+            ">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newCampaignModalLabel">Create New Campaign</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="campaign_name" class="form-label">Campaign Name</label>
+                        <input type="text" class="form-control" id="campaign_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="campaign_type" class="form-label">Campaign Type</label>
+                        <select class="form-select" id="campaign_type" name="campaign_type" required>
+                            <option value="">Select campaign type</option>
+                            <option value="followers">Followers Growth</option>
+                            <option value="engagement">Engagement Boost</option>
+                            <option value="likes">Likes Increase</option>
+                            <option value="comments">Comments Growth</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="duration_days" class="form-label">Duration (days)</label>
+                        <input type="number" class="form-control" id="duration_days" name="duration" min="1" max="30" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="target_audience" class="form-label">Target Audience</label>
+                        <input type="text" class="form-control" id="target_audience" name="target_audience" placeholder="Enter keywords, hashtags">
+                    </div>
+                    <!-- Add more fields as needed -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Campaign</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Performance Chart - Example Data, replace with dynamic data as needed
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Followers',
+                data: [500, 800, 1200, 1500, 2000, 2500],
+                borderColor: '#0d6efd',
+                tension: 0.4
+            }, {
+                label: 'Engagement',
+                data: [100, 300, 400, 700, 900, 1200],
+                borderColor: '#198754',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

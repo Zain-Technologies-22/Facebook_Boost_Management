@@ -1,0 +1,80 @@
+<!-- credits/templates/credits/view_credits.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Credits{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Your Credits</h2>
+    <div class="card">
+        <div class="card-body text-center">
+            <h3 class="card-title">Current Balance</h3>
+            <h1 class="display-4">৳{{ credit.balance|floatformat:2 }}</h1>
+            <p>Your current credit balance.</p>
+            <a href="{% url 'recharge_balance' %}" class="btn btn-primary">Recharge Now</a>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Recent Billing Transactions</h5>
+            <a href="{% url 'create_billing_transaction' %}" class="btn btn-sm btn-outline-primary">New Billing</a>
+        </div>
+        <div class="card-body">
+            {% if billing_transactions %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Transaction ID</th>
+                                <th>Description</th>
+                                <th>Amount (BDT)</th>
+                                <th>Payment Method</th>
+                                <th>Status</th>
+                                <th>Invoice</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in billing_transactions %}
+                                <tr>
+                                    <td>{{ transaction.timestamp|date:"d M Y H:i" }}</td>
+                                    <td>{{ transaction.transaction_id }}</td>
+                                    <td>{{ transaction.description }}</td>
+                                    <td>৳{{ transaction.amount }}</td>
+                                    <td>{{ transaction.get_payment_method_display }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if transaction.status == 'COMPLETED' %}bg-success
+                                            {% elif transaction.status == 'PENDING' %}bg-warning
+                                            {% elif transaction.status == 'FAILED' %}bg-danger
+                                            {% elif transaction.status == 'REFUNDED' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ transaction.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if transaction.invoice_url %}
+                                            <a href="{% url 'download_invoice' transaction.transaction_id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <p>No billing transactions found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

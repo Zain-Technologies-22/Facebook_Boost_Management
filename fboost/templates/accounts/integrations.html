@@ -1,0 +1,217 @@
+<!-- integrations.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Integrations - FBoost{% endblock %}
+
+{% block content %}
+<div class="integrations-container">
+    <!-- Header Section -->
+    <div class="bg-primary text-white py-4 mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-2">Integrations</h1>
+                    <p class="mb-0">Connect and manage your third-party services</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#addIntegrationModal">
+                        <i class="bi bi-plus-lg me-2"></i>Add Integration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Integration Categories -->
+        <div class="row g-4">
+            <!-- Social Media -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Social Media Platforms</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            {% for platform in social_platforms %}
+                            <div class="col-md-6 col-xl-4">
+                                <div class="integration-card">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ platform.icon }}" alt="{{ platform.name }}" 
+                                             class="integration-icon me-3">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ platform.name }}</h6>
+                                            <p class="text-muted mb-0">{{ platform.description }}</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="platform{{ platform.id }}"
+                                                   {% if platform.connected %}checked{% endif %}
+                                                   onchange="toggleIntegration({{ platform.id }})">
+                                        </div>
+                                    </div>
+                                    {% if platform.connected %}
+                                    <div class="integration-details mt-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <small class="text-muted">Connected Account</small>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="disconnectIntegration({{ platform.id }})">
+                                                Disconnect
+                                            </button>
+                                        </div>
+                                        <div class="connected-account">
+                                            <img src="{{ platform.account.avatar }}" 
+                                                 alt="{{ platform.account.name }}"
+                                                 class="avatar-sm rounded-circle me-2">
+                                            <span>{{ platform.account.name }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tools -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Analytics Tools</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            {% for tool in analytics_tools %}
+                            <div class="col-md-6 col-xl-4">
+                                <div class="integration-card">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ tool.icon }}" alt="{{ tool.name }}" 
+                                             class="integration-icon me-3">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ tool.name }}</h6>
+                                            <p class="text-muted mb-0">{{ tool.description }}</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="tool{{ tool.id }}"
+                                                   {% if tool.connected %}checked{% endif %}
+                                                   onchange="toggleIntegration({{ tool.id }})">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Management -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Content Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            {% for cms in content_management %}
+                            <div class="col-md-6 col-xl-4">
+                                <div class="integration-card">
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ cms.icon }}" alt="{{ cms.name }}" 
+                                             class="integration-icon me-3">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ cms.name }}</h6>
+                                            <p class="text-muted mb-0">{{ cms.description }}</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   id="cms{{ cms.id }}"
+                                                   {% if cms.connected %}checked{% endif %}
+                                                   onchange="toggleIntegration({{ cms.id }})">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Integration Modal -->
+<div class="modal fade" id="addIntegrationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Integration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" placeholder="Search integrations...">
+                </div>
+                <div class="integration-list">
+                    {% for integration in available_integrations %}
+                    <div class="integration-item p-3 border rounded mb-2">
+                        <div class="d-flex align-items-center">
+                            <img src="{{ integration.icon }}" alt="{{ integration.name }}" 
+                                 class="integration-icon me-3">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ integration.name }}</h6>
+                                <p class="text-muted mb-0">{{ integration.description }}</p>
+                            </div>
+                            <button class="btn btn-primary btn-sm" 
+                                    onclick="connectIntegration({{ integration.id }})">
+                                Connect
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleIntegration(integrationId) {
+        // Add your integration toggle logic here
+    }
+
+    function disconnectIntegration(integrationId) {
+        if (confirm('Are you sure you want to disconnect this integration?')) {
+            // Add your disconnect logic here
+        }
+    }
+
+    function connectIntegration(integrationId) {
+        // Add your connect integration logic here
+    }
+
+    // Search functionality for available integrations
+    const searchInput = document.querySelector('input[type="text"]');
+    const integrationItems = document.querySelectorAll('.integration-item');
+
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        integrationItems.forEach(item => {
+            const name = item.querySelector('h6').textContent.toLowerCase();
+            const description = item.querySelector('p').textContent.toLowerCase();
+            if (name.includes(searchTerm) || description.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

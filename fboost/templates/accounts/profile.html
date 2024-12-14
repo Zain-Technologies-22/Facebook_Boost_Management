@@ -1,0 +1,420 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load django_bootstrap5 %}
+
+{% block title %}My Profile - FBoost{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        color: white;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        object-fit: cover;
+    }
+
+    .profile-stats {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .nav-pills .nav-link {
+        color: #495057;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        margin-right: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #6a11cb;
+        color: white;
+    }
+
+    .profile-card {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .profile-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .social-link {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 0.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    .social-link:hover {
+        transform: scale(1.1);
+    }
+
+    .facebook { background: #1877f2; }
+    .twitter { background: #1da1f2; }
+    .instagram { background: #e4405f; }
+    .linkedin { background: #0077b5; }
+
+    .verification-badge {
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+
+    .profile-completion {
+        height: 8px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center text-md-start">
+                {% comment %} <img src="{{ user.profile.avatar.url|default:'/static/img/default-avatar.png' }}" 
+                     alt="Profile Picture" 
+                     class="profile-avatar mb-3 mb-md-0"> {% endcomment %}
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-center mb-2">
+                    <h1 class="h2 mb-0 me-3">{{ user.get_full_name|default:user.username }}</h1>
+                    {% if user.profile.is_verified %}
+                    <span class="verification-badge">
+                        <i class="bi bi-patch-check-fill"></i> Verified
+                    </span>
+                    {% endif %}
+                </div>
+                <p class="mb-3">{{ user.profile.bio|default:"No bio available" }}</p>
+                <div class="d-flex social-links mb-3">
+                    {% if user.profile.facebook_url %}
+                    <a href="{{ user.profile.facebook_url }}" class="social-link facebook">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    {% endif %}
+                    {% if user.profile.twitter_url %}
+                    <a href="{{ user.profile.twitter_url }}" class="social-link twitter">
+                        <i class="bi bi-twitter"></i>
+                    </a>
+                    {% endif %}
+                    {% if user.profile.instagram_url %}
+                    <a href="{{ user.profile.instagram_url }}" class="social-link instagram">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    {% endif %}
+                    {% if user.profile.linkedin_url %}
+                    <a href="{{ user.profile.linkedin_url }}" class="social-link linkedin">
+                        <i class="bi bi-linkedin"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="profile-stats">
+                    <div class="row text-center">
+                        <div class="col">
+                            <h3 class="h5 mb-1">{{ user.campaigns.count }}</h3>
+                            <small>Campaigns</small>
+                        </div>
+                        <div class="col">
+                            <h3 class="h5 mb-1">{{ user.credits }}</h3>
+                            <small>Credits</small>
+                        </div>
+                        <div class="col">
+                            <h3 class="h5 mb-1">{{ user.profile.total_followers|default:"0" }}</h3>
+                            <small>Followers</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-center text-md-end mt-3 mt-md-0">
+                <a href="{% url 'edit_profile' %}" class="btn btn-light">
+                    <i class="bi bi-pencil"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Profile Navigation -->
+    <ul class="nav nav-pills mb-4" id="profileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#overview">
+                Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#campaigns">
+                Campaigns
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#analytics">
+                Analytics
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#settings">
+                Settings
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="profileTabsContent">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview">
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Profile Completion -->
+                    <div class="card profile-card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Profile Completion</h5>
+                            <div class="progress profile-completion mb-3">
+                                <div class="progress-bar" role="progressbar" style="width: {{ profile_completion }}%"
+                                     aria-valuenow="{{ profile_completion }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>{{ profile_completion }}% Complete</span>
+                                <a href="#" class="text-primary">Complete Profile</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card profile-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Recent Activity</h5>
+                            {% for activity in recent_activities %}
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="activity-icon me-3">
+                                    <i class="bi {{ activity.icon }} text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ activity.title }}</h6>
+                                    <p class="text-muted mb-0">{{ activity.description }}</p>
+                                    <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted text-center my-4">No recent activity</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- Quick Stats -->
+                    <div class="card profile-card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Quick Stats</h5>
+                            <div class="mb-3">
+                                <label class="text-muted">Member Since</label>
+                                <p class="mb-0">{{ user.date_joined|date:"F j, Y" }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted">Last Login</label>
+                                <p class="mb-0">{{ user.last_login|timesince }} ago</p>
+                            </div>
+                            <div>
+                                <label class="text-muted">Account Status</label>
+                                <p class="mb-0">
+                                    <span class="badge bg-success">Active</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Connected Accounts -->
+                    <div class="card profile-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Connected Accounts</h5>
+                            <div class="list-group list-group-flush">
+                                {% for account in connected_accounts %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-{{ account.platform|lower }} me-2"></i>
+                                        {{ account.platform }}
+                                    </div>
+                                    {% if account.is_connected %}
+                                    <span class="badge bg-success">Connected</span>
+                                    {% else %}
+                                    <a href="#" class="btn btn-sm btn-outline-primary">Connect</a>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campaigns Tab -->
+        <div class="tab-pane fade" id="campaigns">
+            <div class="row">
+                {% for campaign in user_campaigns %}
+                <div class="col-md-6 mb-4">
+                    <div class="card profile-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">{{ campaign.name }}</h5>
+                                <span class="badge {% if campaign.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ campaign.status|title }}
+                                </span>
+                            </div>
+                            <p class="text-muted">{{ campaign.description }}</p>
+                            <div class="progress campaign-progress mb-3">
+                                <div class="progress-bar" role="progressbar" style="width: {{ campaign.progress }}%"
+                                     aria-valuenow="{{ campaign.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ campaign.days_remaining }} days remaining</small>
+                                <a href="{% url 'campaign_detail' campaign.id %}" class="btn btn-sm btn-primary">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="bi bi-rocket-takeoff display-4 text-muted"></i>
+                        <h4 class="mt-3">No Campaigns Yet</h4>
+                        <p class="text-muted">Start your first campaign to boost your social media presence</p>
+                        {% comment %} <a href="{% url 'create_campaign' %}" class="btn btn-primary"> {% endcomment %}
+                            Create Campaign
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="tab-pane fade" id="analytics">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card profile-card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Performance Overview</h5>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-pane fade" id="settings">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card profile-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Profile Settings</h5>
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                {% comment %} {% bootstrap_form profile_form %} {% endcomment %}
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card profile-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Account Settings</h5>
+                            <div class="list-group list-group-flush">
+                                {% comment %} <a href="{% url 'change_password' %}" class="list-group-item list-group-item-action"> {% endcomment %}
+                                    <i class="bi bi-lock me-2"></i> Change Password
+                                </a>
+                                {% comment %} <a href="{% url 'notification_settings' %}" class="list-group-item list-group-item-action"> {% endcomment %}
+                                    <i class="bi bi-bell me-2"></i> Notification Settings
+                                </a>
+                                {% comment %} <a href="{% url 'privacy_settings' %}" class="list-group-item list-group-item-action"> {% endcomment %}
+                                    <i class="bi bi-shield-lock me-2"></i> Privacy Settings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize performance chart
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Followers Growth',
+                    data: [500, 800, 1200, 1500, 2000, 2500],
+                    borderColor: '#6a11cb',
+                    tension: 0.4
+                }, {
+                    label: 'Engagement Rate',
+                    data: [10, 15, 20, 25, 30, 35],
+                    borderColor: '#2575fc',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Handle tab navigation
+        const triggerTabList = [].slice.call(document.querySelectorAll('#profileTabs button'));
+        triggerTabList.forEach(function(triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Apply AD Account{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="mb-4">Apply for AD Account</h2>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">Please correct the following errors:</h4>
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+            
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Account Information</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form.account_name|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Facebook Page URLs</h4>
+                        <small class="text-muted">At least the first URL is required</small>
+                    </div>
+                    <div class="card-body">
+                        {{ form.facebook_page_url_1|as_crispy_field }}
+                        {{ form.facebook_page_url_2|as_crispy_field }}
+                        {{ form.facebook_page_url_3|as_crispy_field }}
+                        {{ form.facebook_page_url_4|as_crispy_field }}
+                        {{ form.facebook_page_url_5|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Website URLs</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form.website_url_1|as_crispy_field }}
+                        {{ form.website_url_2|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Account Details</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form.account_type|as_crispy_field }}
+                        {{ form.business_manager_id|as_crispy_field }}
+                        {{ form.timezone|as_crispy_field }}
+                        {{ form.business_type|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>Confirmation</h4>
+                    </div>
+                    <div class="card-body">
+                        {{ form.confirm_payment|as_crispy_field }}
+                        {{ form.confirm_balance_update|as_crispy_field }}
+                        {{ form.confirm_transfer_details|as_crispy_field }}
+                        {{ form.agree_terms|as_crispy_field }}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        Submit AD Account Application
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    form.addEventListener('submit', function(event) {
+        console.log('Form submitted'); // Debug log
+        
+        // Optional: Add form validation here if needed
+        const confirmationCheckboxes = form.querySelectorAll('input[type="checkbox"]');
+        let allChecked = true;
+        
+        confirmationCheckboxes.forEach(cb => {
+            if (!cb.checked) {
+                allChecked = false;
+            }
+        });
+        
+        if (!allChecked) {
+            event.preventDefault();
+            alert('Please confirm all checkboxes before submitting.');
+        }
+    });
+});
+</script>
+{% endblock %}

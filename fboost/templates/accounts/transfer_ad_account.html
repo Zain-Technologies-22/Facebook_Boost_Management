@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Transfer AD Account{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Transfer AD Account</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            {{ form.ad_account|as_crispy_field }}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.to_user|as_crispy_field }}
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <h5 class="alert-heading">⚠️ Important Notice</h5>
+                            <p>Please note that transferring an AD account:</p>
+                            <ul>
+                                <li>Cannot be undone</li>
+                                <li>Transfers all associated data and history</li>
+                                <li>Removes your access to the account</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="confirmTransfer" required>
+                            <label class="form-check-label" for="confirmTransfer">
+                                I understand that this action cannot be undone
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="transferButton" disabled>
+                                Confirm Transfer
+                            </button>
+                            <a href="{% url 'my_ad_account' %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmCheckbox = document.getElementById('confirmTransfer');
+        const transferButton = document.getElementById('transferButton');
+
+        confirmCheckbox.addEventListener('change', function() {
+            transferButton.disabled = !this.checked;
+        });
+    });
+</script>
+{% endblock %}

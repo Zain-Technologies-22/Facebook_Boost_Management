@@ -1,0 +1,286 @@
+<!-- campaign_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ campaign.name }} - Campaign Details{% endblock %}
+
+{% block content %}
+<div class="campaign-detail-container">
+    <!-- Header Section -->
+    <div class="bg-primary text-white py-4 mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-2">
+                            <li class="breadcrumb-item"><a href="{% url 'campaigns' %}" class="text-white">Campaigns</a></li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">Campaign Details</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 mb-0">{{ campaign.name }}</h1>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="btn-group">
+                        <a href="{% url 'edit_campaign' campaign.id %}" class="btn btn-light">
+                            <i class="bi bi-pencil me-2"></i>Edit
+                        </a>
+                        {% if campaign.status == 'active' %}
+                        <button class="btn btn-warning" onclick="pauseCampaign({{ campaign.id }})">
+                            <i class="bi bi-pause-circle me-2"></i>Pause
+                        </button>
+                        {% elif campaign.status == 'paused' %}
+                        <button class="btn btn-success" onclick="resumeCampaign({{ campaign.id }})">
+                            <i class="bi bi-play-circle me-2"></i>Resume
+                        </button>
+                        {% endif %}
+                        <button class="btn btn-danger" onclick="deleteCampaign({{ campaign.id }})">
+                            <i class="bi bi-trash me-2"></i>Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Campaign Overview -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Campaign Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-sm-6 col-md-3 text-center mb-3 mb-md-0">
+                                <div class="p-3 rounded bg-light">
+                                    <h6 class="text-muted mb-2">Status</h6>
+                                    <span class="badge {% if campaign.status == 'active' %}bg-success
+                                                      {% elif campaign.status == 'paused' %}bg-warning
+                                                      {% elif campaign.status == 'completed' %}bg-info
+                                                      {% else %}bg-secondary{% endif %}">
+                                        {{ campaign.status|title }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3 text-center mb-3 mb-md-0">
+                                <div class="p-3 rounded bg-light">
+                                    <h6 class="text-muted mb-2">Progress</h6>
+                                    <h4 class="mb-0">{{ campaign.progress }}%</h4>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3 text-center">
+                                <div class="p-3 rounded bg-light">
+                                    <h6 class="text-muted mb-2">Duration</h6>
+                                    <h4 class="mb-0">{{ campaign.duration }} days</h4>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3 text-center">
+                                <div class="p-3 rounded bg-light">
+                                    <h6 class="text-muted mb-2">Budget Used</h6>
+                                    <h4 class="mb-0">{{ campaign.budget_used }} Credits</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Description</h6>
+                            <p class="text-muted mb-0">{{ campaign.description }}</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Target Audience</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for tag in campaign.target_tags %}
+                                <span class="badge bg-primary-soft text-primary">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h6>Timeline</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Started</small>
+                                    <span>{{ campaign.start_date|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Expected End</small>
+                                    <span>{{ campaign.end_date|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Days Remaining</small>
+                                    <span>{{ campaign.days_remaining }} days</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Performance Metrics</h5>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-outline-secondary active">Week</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Month</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">All</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Engagement Analysis -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Engagement Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-sm-6 col-md-3">
+                                <div class="text-center">
+                                    <h2 class="mb-1">{{ campaign.followers_gained }}</h2>
+                                    <p class="text-muted mb-0">New Followers</p>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="text-center">
+                                    <h2 class="mb-1">{{ campaign.likes_count }}</h2>
+                                    <p class="text-muted mb-0">Likes</p>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="text-center">
+                                    <h2 class="mb-1">{{ campaign.comments_count }}</h2>
+                                    <p class="text-muted mb-0">Comments</p>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="text-center">
+                                    <h2 class="mb-1">{{ campaign.shares_count }}</h2>
+                                    <p class="text-muted mb-0">Shares</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Recent Activity -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            {% for activity in campaign.recent_activities %}
+                            <div class="timeline-item">
+                                <div class="timeline-icon bg-primary">
+                                    <i class="bi {{ activity.icon }} text-white"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">{{ activity.title }}</h6>
+                                    <p class="text-muted mb-0">{{ activity.description }}</p>
+                                    <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campaign Settings -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Campaign Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Daily Budget</span>
+                                <span class="badge bg-primary">{{ campaign.daily_budget }} Credits</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Target Platform</span>
+                                <span class="badge bg-secondary">{{ campaign.platform }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>Auto-renewal</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           {% if campaign.auto_renewal %}checked{% endif %}
+                                           onchange="toggleAutoRenewal({{ campaign.id }}, this.checked)">
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Performance Chart
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Followers',
+                data: {{ followers_data|safe }},
+                borderColor: '#0d6efd',
+                tension: 0.4
+            }, {
+                label: 'Engagement',
+                data: {{ engagement_data|safe }},
+                borderColor: '#198754',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Campaign Management Functions
+    function toggleAutoRenewal(campaignId, enabled) {
+        fetch(`/api/campaigns/${campaignId}/auto-renewal/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({ enabled: enabled })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+            }
+        });
+    }
+
+    // Include pause, resume, and delete functions from previous implementation
+</script>
+{% endblock %}

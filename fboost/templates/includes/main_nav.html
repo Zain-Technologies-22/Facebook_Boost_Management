@@ -1,0 +1,22 @@
+
+
+<ul class="navbar-nav me-auto">
+    <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+           href="{% url 'dashboard' %}">
+            <i class="bi bi-speedometer2"></i> Home
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'campaigns' %}active{% endif %}" 
+           href="{% url 'campaigns' %}">
+            <i class="bi bi-megaphone"></i> Campaigns
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'view_credits' %}active{% endif %}" 
+           href="{% url 'view_credits' %}">
+            <i class="bi bi-coin"></i> Credits
+        </a>
+    </li>
+</ul>

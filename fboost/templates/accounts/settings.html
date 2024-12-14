@@ -1,0 +1,218 @@
+<!-- settings.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings - FBoost{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <!-- Header Section -->
+    <div class="bg-primary text-white py-4 mb-4">
+        <div class="container">
+            <h1 class="h3 mb-2">Settings</h1>
+            <p class="mb-0">Manage your account preferences and configurations</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Settings Navigation -->
+            <div class="col-lg-3">
+                <div class="card mb-4">
+                    <div class="list-group list-group-flush">
+                        <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                            <i class="bi bi-person me-2"></i>Profile
+                        </a>
+                        <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                            <i class="bi bi-shield-lock me-2"></i>Security
+                        </a>
+                        <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                            <i class="bi bi-bell me-2"></i>Notifications
+                        </a>
+                        <a href="#billing" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                            <i class="bi bi-credit-card me-2"></i>Billing
+                        </a>
+                        <a href="#connected-accounts" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                            <i class="bi bi-link-45deg me-2"></i>Connected Accounts
+                        </a>
+                        <a href="#api" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                            <i class="bi bi-code-slash me-2"></i>API
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="col-lg-9">
+                <div class="tab-content">
+                    <!-- Profile Settings -->
+                    <div class="tab-pane fade show active" id="profile">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Profile Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="profileForm">
+                                    <!-- Profile Picture -->
+                                    <div class="text-center mb-4">
+                                        <div class="position-relative d-inline-block">
+                                            <img src="{{ user.avatar_url|default:'static/img/default-avatar.png' }}" 
+                                                 alt="Profile picture" 
+                                                 class="rounded-circle" 
+                                                 width="120" height="120">
+                                            <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0"
+                                                    onclick="document.getElementById('avatarInput').click()">
+                                                <i class="bi bi-camera"></i>
+                                            </button>
+                                        </div>
+                                        <input type="file" id="avatarInput" class="d-none" accept="image/*">
+                                    </div>
+
+                                    <!-- Profile Information -->
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">First Name</label>
+                                            <input type="text" class="form-control" value="{{ user.first_name }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" value="{{ user.last_name }}">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" class="form-control" value="{{ user.email }}">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">Bio</label>
+                                            <textarea class="form-control" rows="3">{{ user.bio }}</textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Location</label>
+                                            <input type="text" class="form-control" value="{{ user.location }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Timezone</label>
+                                            <select class="form-select">
+                                                <option value="UTC">UTC</option>
+                                                <!-- Add more timezone options -->
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div class="tab-pane fade" id="security">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Security Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Change Password -->
+                                <form id="passwordForm" class="mb-4">
+                                    <h6 class="mb-3">Change Password</h6>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label">Current Password</label>
+                                            <input type="password" class="form-control">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">New Password</label>
+                                            <input type="password" class="form-control">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Confirm New Password</label>
+                                            <input type="password" class="form-control">
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-primary">Update Password</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <!-- Two-Factor Authentication -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">Two-Factor Authentication</h6>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="twoFactorToggle">
+                                        <label class="form-check-label" for="twoFactorToggle">Enable 2FA</label>
+                                    </div>
+                                </div>
+
+                                <!-- Login History -->
+                                <div>
+                                    <h6 class="mb-3">Login History</h6>
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Device</th>
+                                                    <th>Location</th>
+                                                    <th>IP Address</th>
+                                                    <th>Time</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for login in login_history %}
+                                                <tr>
+                                                    <td>
+                                                        <i class="bi bi-laptop me-2"></i>
+                                                        {{ login.device }}
+                                                    </td>
+                                                    <td>{{ login.location }}</td>
+                                                    <td>{{ login.ip_address }}</td>
+                                                    <td>{{ login.timestamp|timesince }} ago</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional settings tabs (Notifications, Billing, etc.) would go here -->
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Profile picture upload preview
+    document.getElementById('avatarInput').addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('.rounded-circle').src = e.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+
+    // Form submission handling
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Add your profile update logic here
+    });
+
+    document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Add your password update logic here
+    });
+
+    // Two-factor authentication toggle
+    document.getElementById('twoFactorToggle').addEventListener('change', function(e) {
+        // Add your 2FA toggle logic here
+    });
+</script>
+{% endblock %}

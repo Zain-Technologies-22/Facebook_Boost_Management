@@ -1,0 +1,72 @@
+<div class="navbar-nav ms-auto">
+    <!-- Notification Bell -->
+    <div class="nav-item dropdown me-3">
+        <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-bell"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                3
+                <span class="visually-hidden">unread notifications</span>
+            </span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+            <!-- Add notification items here -->
+            <a class="dropdown-item" href="#">New campaign completed</a>
+            <a class="dropdown-item" href="#">Credit balance updated</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item text-center" href="#">View all notifications</a>
+        </div>
+    </div>
+
+    <!-- Balance Widget -->
+    <div class="balance-widget px-3 py-1 bg-light rounded text-primary me-3">
+        <i class="bi bi-wallet2"></i>
+        <span class="fw-bold">${{ user.balance|default:"0" }}</span>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- User Menu -->
+    <div class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+            {% else %}
+                <i class="bi bi-person-circle me-2"></i>
+            {% endif %}
+            {{ user.username }}
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="{% url 'profile' %}">
+                    <i class="bi bi-person"></i> Profile
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="{% url 'settings' %}">
+                    <i class="bi bi-gear"></i> Settings
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form method="post" action="{% url 'logout' %}" class="dropdown-item p-0">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+    {% else %}
+    <!-- Login/Register Links -->
+    <div class="nav-item">
+        <a class="nav-link" href="{% url 'login' %}">
+            <i class="bi bi-box-arrow-in-right"></i> Login
+        </a>
+    </div>
+    <div class="nav-item">
+        <a class="nav-link" href="{% url 'signup' %}">
+            <i class="bi bi-person-plus"></i> Register
+        </a>
+    </div>
+    {% endif %}
+</div>

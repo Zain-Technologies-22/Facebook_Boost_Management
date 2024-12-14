@@ -1,0 +1,255 @@
+<!-- templates/credits/billing.html -->
+
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Billing & Subscription{% endblock %}
+
+{% block content %}
+<div class="billing-container">
+    <!-- Header Section -->
+    <div class="bg-primary text-white py-4 mb-4">
+        <div class="container">
+            <h1 class="h3 mb-2">Billing & Subscription</h1>
+            <p class="mb-0">Manage your payment methods and view transaction history</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="billingTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="current-plan-tab" data-bs-toggle="tab" data-bs-target="#current-plan" type="button" role="tab" aria-controls="current-plan" aria-selected="true">Current Plan</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="payment-methods-tab" data-bs-toggle="tab" data-bs-target="#payment-methods" type="button" role="tab" aria-controls="payment-methods" aria-selected="false">Payment Methods</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="recharge-history-tab" data-bs-toggle="tab" data-bs-target="#recharge-history" type="button" role="tab" aria-controls="recharge-history" aria-selected="false">Recharge History</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="billing-history-tab" data-bs-toggle="tab" data-bs-target="#billing-history" type="button" role="tab" aria-controls="billing-history" aria-selected="false">Billing History</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="credits-tab" data-bs-toggle="tab" data-bs-target="#credits" type="button" role="tab" aria-controls="credits" aria-selected="false">Your Credits</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="billingTabsContent">
+            <!-- Current Plan Tab -->
+            <div class="tab-pane fade show active" id="current-plan" role="tabpanel" aria-labelledby="current-plan-tab">
+                <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Current Plan</h5>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#upgradePlanModal">
+                            Upgrade Plan
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if plan %}
+                            <div class="text-center mb-4">
+                                <div class="badge bg-primary mb-2">{{ plan.name }}</div>
+                                <h2 class="mb-0">${{ plan.price }}<small class="text-muted">/month</small></h2>
+                            </div>
+                            
+                            {% if plan.description %}
+                                <p>{{ plan.description }}</p>
+                            {% endif %}
+                            
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Credits Used</span>
+                                    <span>{{ credits_percentage }}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ credits_percentage }}%" 
+                                         aria-valuenow="{{ credits_percentage }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <p>You are not subscribed to any plan. <a href="{% url 'create_billing_transaction' %}" class="alert-link">Subscribe Now</a>.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods Tab -->
+            <div class="tab-pane fade" id="payment-methods" role="tabpanel" aria-labelledby="payment-methods-tab">
+                <div class="card mb-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Payment Methods</h5>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                            <i class="bi bi-plus"></i> Add Payment
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if user_payment_methods %}
+                            <div class="list-group">
+                                {% for method in user_payment_methods %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            {% if method.payment_method == 'BKASH' %}
+                                                <i class="bi bi-bank2 text-primary fs-4 me-3"></i>
+                                            {% elif method.payment_method == 'NAGAD' %}
+                                                <i class="bi bi-bank2 text-danger fs-4 me-3"></i>
+                                            {% elif method.payment_method == 'ROCKET' %}
+                                                <i class="bi bi-bank2 text-warning fs-4 me-3"></i>
+                                            {% elif method.payment_method == 'BANK_TRANSFER' %}
+                                                <i class="bi bi-bank text-info fs-4 me-3"></i>
+                                            {% else %}
+                                                <i class="bi bi-credit-card text-secondary fs-4 me-3"></i>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ method.get_payment_method_display }}</h6>
+                                                <small class="text-muted">Method ID: {{ method.id }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                {% if not method.is_default %}
+                                                    <li>
+                                                        <button class="dropdown-item" onclick="setDefaultPayment({{ method.id }})">
+                                                            Set as Default
+                                                        </button>
+                                                    </li>
+                                                {% endif %}
+                                                <li>
+                                                    <button class="dropdown-item text-danger" onclick="removePaymentMethod({{ method.id }})">
+                                                        Remove
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>No payment methods found. <a href="#" data-bs-toggle="modal" data-bs-target="#addPaymentModal" class="alert-link">Add one now</a>.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recharge History Tab -->
+            <div class="tab-pane fade" id="recharge-history" role="tabpanel" aria-labelledby="recharge-history-tab">
+                {% include 'credits/recharge_history.html' %}
+            </div>
+
+            <!-- Billing History Tab -->
+            <div class="tab-pane fade" id="billing-history" role="tabpanel" aria-labelledby="billing-history-tab">
+                {% include 'credits/billing_history.html' %}
+            </div>
+
+            <!-- Your Credits Tab Pane -->
+            <div class="tab-pane fade" id="credits" role="tabpanel" aria-labelledby="credits-tab">
+                {% include 'credits/view_credits.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% include 'credits/add_payment_modal.html' %}
+{% include 'credits/upgrade_plan_modal.html' %}
+{% comment %} {% include 'credits/create_billing_transaction_modal.html' %} {% endcomment %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Performance Chart
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Followers',
+                data: [500, 800, 1200, 1500, 2000, 2500],
+                borderColor: '#0d6efd',
+                tension: 0.4
+            }, {
+                label: 'Engagement',
+                data: [100, 300, 400, 700, 900, 1200],
+                borderColor: '#198754',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // AJAX Functions for Payment Methods
+
+    function setDefaultPayment(paymentId){
+        if(confirm('Are you sure you want to set this as your default payment method?')){
+            fetch("{% url 'set_default_payment' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({'payment_id': paymentId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success){
+                    alert('Default payment method updated.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An unexpected error occurred.');
+            });
+        }
+    }
+
+    function removePaymentMethod(paymentId){
+        if(confirm('Are you sure you want to remove this payment method?')){
+            fetch(`/payment-methods/remove/${paymentId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success){
+                    alert('Payment method removed.');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An unexpected error occurred.');
+            });
+        }
+    }
+</script>
+{% endblock %}

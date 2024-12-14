@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'dashboard',
     'accounts',
     'credits',
@@ -48,11 +49,12 @@ INSTALLED_APPS = [
     'crispy_bootstrap5',
     'django_htmx',
     'django_bootstrap5',
+    
 ]
 
 
-LOGIN_REDIRECT_URL = '/'  # Redirect to homepage after login
-LOGOUT_REDIRECT_URL = '/'  # Redirect to homepage after logout
+LOGIN_REDIRECT_URL = 'dashboard'  # Redirect to homepage after login
+LOGOUT_REDIRECT_URL = 'index'  # Redirect to homepage after logout
 LOGIN_URL = '/login/'     # Where to redirect if login is required
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -81,6 +83,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'dashboard.context_processors.current_year',
+                'credits.context_processors.credit_balance',
             ],
         },
     },
@@ -150,3 +154,24 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Or your email provider's SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # Replace with your email
+EMAIL_HOST_USER_PASSWORD = 'your-email-password'  # Replace with your email password or app-specific password
+
+# For development/testing, you can use the console backend instead:
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Default from email
+DEFAULT_FROM_EMAIL = 'FBoost <noreply@fboost.com>'
+
+
+
+# Media files (User-uploaded content)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

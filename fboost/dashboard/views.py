@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib import messages
 from .forms import SignUpForm
-from accounts.models import CustomUser
+
 
 def index_view(request):
     if request.user.is_authenticated:
@@ -26,24 +26,3 @@ def campaigns(request):
 def credits(request):
     return render(request, 'dashboard/credits.html')
 
-@login_required
-def profile(request):
-    return render(request, 'dashboard/profile.html')
-
-@login_required
-def settings(request):
-    return render(request, 'dashboard/settings.html')
-
-def signup_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('dashboard')
-    else:
-        form = SignUpForm()
-    return render(request, 'auth/signup.html', {'form': form})

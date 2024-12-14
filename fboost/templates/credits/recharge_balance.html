@@ -1,0 +1,22 @@
+<!-- templates/credits/recharge_balance.html -->
+
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Recharge Balance{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Recharge Your Balance</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" id="rechargeForm">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <button type="submit" class="btn btn-primary">Submit Recharge</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
