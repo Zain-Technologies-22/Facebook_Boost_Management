@@ -1,5 +1,10 @@
 <!-- templates/credits/recharge_history.html -->
+{% extends 'base.html' %}
+{% load static %}
 
+{% block title %}Recharge History{% endblock %}
+
+{% block content %}
 <div class="card mb-4">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Recharge History</h5>
@@ -84,3 +89,4 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}

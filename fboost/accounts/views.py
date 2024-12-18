@@ -7,6 +7,7 @@ from django.contrib.auth import login
 from .forms import SignUpForm
 from .models import AdAccount, AdAccountTransfer
 from .forms import ApplyAdAccountForm, TransferAdAccountForm
+from .forms import ProfileForm 
 
 @login_required
 def apply_ad_account(request):
@@ -52,10 +53,6 @@ def transfer_ad_account(request):
         form = TransferAdAccountForm(user=request.user)
     return render(request, 'accounts/transfer_ad_account.html', {'form': form})
 
-# views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import ProfileForm  # You'll need to create this form
 
 @login_required
 def edit_profile(request):

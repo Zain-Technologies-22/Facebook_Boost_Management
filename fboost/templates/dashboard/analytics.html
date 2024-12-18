@@ -1,5 +1,7 @@
 <!-- analytics.html -->
 {% extends 'base.html' %}
+{% load humanize %}
+{% load custom_filters %}
 {% load static %}
 
 {% block title %}Analytics - FBoost{% endblock %}
@@ -46,7 +48,7 @@
                         <div class="d-flex align-items-center">
                             <span class="{% if followers_growth >= 0 %}text-success{% else %}text-danger{% endif %} me-2">
                                 <i class="bi {% if followers_growth >= 0 %}bi-arrow-up{% else %}bi-arrow-down{% endif %}"></i>
-                                {{ followers_growth|abs }}%
+                               {{ followers_growth|abs_filter }}%
                             </span>
                             <small class="text-muted">vs last period</small>
                         </div>
@@ -69,7 +71,8 @@
                         <div class="d-flex align-items-center">
                             <span class="{% if engagement_growth >= 0 %}text-success{% else %}text-danger{% endif %} me-2">
                                 <i class="bi {% if engagement_growth >= 0 %}bi-arrow-up{% else %}bi-arrow-down{% endif %}"></i>
-                                {{ engagement_growth|abs }}%
+                                {{ engagement_growth|abs_filter }}%
+                             
                             </span>
                             <small class="text-muted">vs last period</small>
                         </div>
@@ -92,7 +95,7 @@
                         <div class="d-flex align-items-center">
                             <span class="{% if likes_growth >= 0 %}text-success{% else %}text-danger{% endif %} me-2">
                                 <i class="bi {% if likes_growth >= 0 %}bi-arrow-up{% else %}bi-arrow-down{% endif %}"></i>
-                                {{ likes_growth|abs }}%
+                                {{ likes_growth|abs_filter }}%
                             </span>
                             <small class="text-muted">vs last period</small>
                         </div>
@@ -115,7 +118,7 @@
                         <div class="d-flex align-items-center">
                             <span class="{% if comments_growth >= 0 %}text-success{% else %}text-danger{% endif %} me-2">
                                 <i class="bi {% if comments_growth >= 0 %}bi-arrow-up{% else %}bi-arrow-down{% endif %}"></i>
-                                {{ comments_growth|abs }}%
+                                {{ comments_growth|abs_filter }}%
                             </span>
                             <small class="text-muted">vs last period</small>
                         </div>
@@ -220,7 +223,7 @@
                                         <td>
                                             <span class="{% if stat.growth >= 0 %}text-success{% else %}text-danger{% endif %}">
                                                 <i class="bi {% if stat.growth >= 0 %}bi-arrow-up{% else %}bi-arrow-down{% endif %}"></i>
-                                                {{ stat.growth|abs }}%
+                                                {{ stat.growth|abs_filter }}%
                                             </span>
                                         </td>
                                     </tr>

@@ -19,7 +19,7 @@
                 <span class="ms-2 d-none d-lg-inline">Dashboard</span>
             </a>
             <a href="
-            {% comment %} {% url 'analytics' %} {% endcomment %}
+            {% url 'analytics' %}
             " class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
                 <i class="bi bi-graph-up"></i>
                 <span class="ms-2 d-none d-lg-inline">Analytics</span>
@@ -31,14 +31,9 @@
             <small class="text-muted text-uppercase d-none d-lg-block">Campaigns</small>
             <a href="{% url 'campaigns' %}" class="nav-link {% if request.resolver_match.url_name == 'campaigns' %}active{% endif %}">
                 <i class="bi bi-megaphone"></i>
-                <span class="ms-2 d-none d-lg-inline">All Campaigns</span>
+                <span class="ms-2 d-none d-lg-inline">Campaigns</span>
             </a>
-            <a href="
-            {% comment %} {% url 'create_campaign' %} {% endcomment %}
-            " class="nav-link {% if request.resolver_match.url_name == 'create_campaign' %}active{% endif %}">
-                <i class="bi bi-plus-circle"></i>
-                <span class="ms-2 d-none d-lg-inline">Create Campaign</span>
-            </a>
+            
         </div>
 
         <!-- Billing Account Section -->

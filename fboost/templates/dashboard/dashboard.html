@@ -235,7 +235,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="newCampaignForm" method="post" action="
-            {% comment %} {% url 'create_campaign' %} {% endcomment %}
+            {% url 'create_campaign' %}
             ">
                 {% csrf_token %}
                 <div class="modal-header">

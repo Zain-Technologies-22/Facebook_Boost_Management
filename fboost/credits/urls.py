@@ -3,17 +3,6 @@
 from django.urls import path
 from . import views
 
-# urlpatterns = [
-#     path('recharge/', views.recharge_balance, name='recharge_balance'),
-#     path('view/', views.view_credits, name='view_credits'),
-#     path('recharge/history/', views.recharge_history, name='recharge_history'),
-#     path('recharge/details/<str:transaction_id>/', views.recharge_details, name='recharge_details'),
-#     path('analytics/', views.recharge_balance, name='analytics'),
-
-
-# ]
-
-
 
 urlpatterns = [
     # Recharge URLs
@@ -34,5 +23,5 @@ urlpatterns = [
 
     # New URL Pattern for View Credits
     path('credits/', views.view_credits, name='view_credits'),
-
-]
+    
+  ]

@@ -16,29 +16,44 @@ from django.conf import settings
 @login_required
 def recharge_balance(request):
     """
-    View to handle the recharge form submission
+    View to handle the recharge form submission with comprehensive validation
     """
     if request.method == 'POST':
         form = RechargeForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                recharge_transaction = form.save()
+                # Save the form but don't commit yet
+                recharge_transaction = form.save(commit=False)
+                recharge_transaction.user = request.user  # Set the user
+                recharge_transaction.save()  # Now save with all fields
                 
-                # Update Credit balance
+                # Update Credit balance (only if you want to update immediately)
+                # Note: You might want to wait for admin approval before updating balance
                 credit, created = Credit.objects.get_or_create(user=request.user)
                 credit.balance += recharge_transaction.amount
                 credit.save()
                 
-                messages.success(request, "Recharge submitted successfully! Awaiting confirmation.")
+                messages.success(request, "Recharge request submitted successfully! Awaiting confirmation.")
                 return redirect('recharge_history')
             except Exception as e:
-                messages.error(request, f"Error processing your recharge: {e}")
+                messages.error(request, f"Error processing your recharge: {str(e)}")
         else:
-            messages.error(request, "Please correct the errors below.")
+            # Form is invalid, display errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
-        form = RechargeForm()
+        form = RechargeForm()  # Create new form for GET request
     
-    return render(request, 'credits/recharge_balance.html', {'form': form})
+    # Add any additional context needed for the template
+    context = {
+        'form': form,
+        'payment_methods': PaymentMethod.choices,
+        'min_amount': 50,  # Matches the form's min_value
+        'max_amount': 100000,  # Matches the form's max_value
+    }
+    
+    return render(request, 'credits/recharge_balance.html', context)
 
 @login_required
 def recharge_history(request):
