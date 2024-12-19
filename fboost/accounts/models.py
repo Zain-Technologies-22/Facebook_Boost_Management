@@ -7,7 +7,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django import forms
-
+from django.conf import settings
+from django.utils import timezone
 
 class CustomUser(AbstractUser):
     phone = models.CharField(max_length=15, blank=True, null=True)
@@ -143,7 +144,8 @@ class Profile(models.Model):
     linkedin_url = models.URLField(max_length=200, blank=True)
     total_followers = models.IntegerField(default=0)
     is_verified = models.BooleanField(default=False)
-
+    location = models.CharField(max_length=100, blank=True)
+    timezone = models.CharField(max_length=50, default='UTC')
     def __str__(self):
         return f"{self.user.username}'s profile"
 
@@ -156,3 +158,11 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CustomUser)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+
+class LoginHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']

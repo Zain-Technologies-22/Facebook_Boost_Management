@@ -8,8 +8,7 @@ urlpatterns = [
     path('apply/', views.apply_ad_account, name='apply_ad_account'),
     path('my/', views.my_ad_account, name='my_ad_account'),
     path('transfer/', views.transfer_ad_account, name='transfer_ad_account'),
-    path('profile/edit/', views.edit_profile, name='edit_profile'),
-    path('settings/', views.settings, name='settings'),
+    path('settings/', views.settings_view, name='settings'),
     path('profile/', views.profile, name='profile'),
      # Password Reset URLs
     path('password-reset/', 

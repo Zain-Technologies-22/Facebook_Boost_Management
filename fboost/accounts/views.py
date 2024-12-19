@@ -5,9 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import login
 from .forms import SignUpForm
-from .models import AdAccount, AdAccountTransfer
+from .models import AdAccount, LoginHistory
 from .forms import ApplyAdAccountForm, TransferAdAccountForm
 from .forms import ProfileForm 
+from django.contrib.auth.forms import PasswordChangeForm
+
 
 @login_required
 def apply_ad_account(request):
@@ -65,14 +67,33 @@ def edit_profile(request):
     else:
         form = ProfileForm(instance=request.user.profile)
     
-    return render(request, 'accounts/edit_profile.html', {
+    return render(request, 'accounts/settings.html', {
         'form': form
     })
 
-@login_required
-def settings(request):
-    return render(request, 'accounts/settings.html')
 
+@login_required
+def settings_view(request):
+    if request.method == 'POST':
+        if 'old_password' in request.POST:  # Changed from 'current_password' to 'old_password'
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                password_form.save()
+                # Update session to prevent logout
+                update_session_auth_hash(request, password_form.user)
+                messages.success(request, 'Password updated successfully!')
+        else:
+            profile_form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Profile updated successfully!')
+    
+    context = {
+        'form': ProfileForm(instance=request.user.profile),
+        'password_form': PasswordChangeForm(request.user),
+        'login_history': LoginHistory.objects.filter(user=request.user).order_by('-timestamp')[:5]
+    }
+    return render(request, 'accounts/settings.html', context)
 @login_required
 def profile(request):
     return render(request, 'accounts/profile.html')

@@ -1,185 +1,253 @@
-<!-- settings.html -->
 {% extends 'base.html' %}
 {% load static %}
+{% load django_bootstrap5 %}
 
-{% block title %}Settings - FBoost{% endblock %}
+{% block title %}Account Settings - FBoost{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-header {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        color: white;
+    }
+
+    .settings-nav .nav-link {
+        color: #495057;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .settings-nav .nav-link.active {
+        background-color: #6a11cb;
+        color: white;
+    }
+
+    .settings-nav .nav-link i {
+        width: 1.5rem;
+    }
+
+    .avatar-upload {
+        position: relative;
+        display: inline-block;
+    }
+
+    .avatar-upload .upload-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: rgba(106, 17, 203, 0.9);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .avatar-upload .upload-btn:hover {
+        background: rgba(106, 17, 203, 1);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="settings-container">
-    <!-- Header Section -->
-    <div class="bg-primary text-white py-4 mb-4">
-        <div class="container">
-            <h1 class="h3 mb-2">Settings</h1>
-            <p class="mb-0">Manage your account preferences and configurations</p>
-        </div>
-    </div>
-
+<!-- Settings Header -->
+<div class="settings-header">
     <div class="container">
-        <div class="row">
-            <!-- Settings Navigation -->
-            <div class="col-lg-3">
-                <div class="card mb-4">
-                    <div class="list-group list-group-flush">
-                        <a href="#profile" class="list-group-item list-group-item-action active" data-bs-toggle="list">
-                            <i class="bi bi-person me-2"></i>Profile
-                        </a>
-                        <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                            <i class="bi bi-shield-lock me-2"></i>Security
-                        </a>
-                        <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                            <i class="bi bi-bell me-2"></i>Notifications
-                        </a>
-                        <a href="#billing" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                            <i class="bi bi-credit-card me-2"></i>Billing
-                        </a>
-                        <a href="#connected-accounts" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                            <i class="bi bi-link-45deg me-2"></i>Connected Accounts
-                        </a>
-                        <a href="#api" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                            <i class="bi bi-code-slash me-2"></i>API
-                        </a>
-                    </div>
+        <h1 class="h3 mb-2">Account Settings</h1>
+        <p class="mb-0">Manage your profile, security, and preferences</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Settings Navigation -->
+        <div class="col-lg-3 mb-4">
+            <nav class="settings-nav">
+                <div class="nav flex-column nav-pills" role="tablist">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#profile">
+                        <i class="bi bi-person-circle"></i> Profile
+                    </button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#security">
+                        <i class="bi bi-shield-lock"></i> Security
+                    </button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#notifications">
+                        <i class="bi bi-bell"></i> Notifications
+                    </button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#social">
+                        <i class="bi bi-share"></i> Social Accounts
+                    </button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#billing">
+                        <i class="bi bi-credit-card"></i> Billing
+                    </button>
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#privacy">
+                        <i class="bi bi-eye"></i> Privacy
+                    </button>
                 </div>
-            </div>
+            </nav>
+        </div>
 
-            <!-- Settings Content -->
-            <div class="col-lg-9">
-                <div class="tab-content">
-                    <!-- Profile Settings -->
-                    <div class="tab-pane fade show active" id="profile">
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Profile Settings</h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="profileForm">
-                                    <!-- Profile Picture -->
-                                    <div class="text-center mb-4">
-                                        <div class="position-relative d-inline-block">
-                                            <img src="{{ user.avatar_url|default:'static/img/default-avatar.png' }}" 
-                                                 alt="Profile picture" 
-                                                 class="rounded-circle" 
-                                                 width="120" height="120">
-                                            <button type="button" class="btn btn-sm btn-primary position-absolute bottom-0 end-0"
-                                                    onclick="document.getElementById('avatarInput').click()">
-                                                <i class="bi bi-camera"></i>
-                                            </button>
-                                        </div>
-                                        <input type="file" id="avatarInput" class="d-none" accept="image/*">
+        <!-- Settings Content -->
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- Profile Tab -->
+                <div class="tab-pane fade show active" id="profile">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Profile Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                
+                                <!-- Profile Picture -->
+                                <div class="text-center mb-4">
+                                    <div class="avatar-upload">
+                                        {% if user.profile.avatar %}
+                                            <img src="{{ user.profile.avatar.url }}" alt="Profile" 
+                                                 class="rounded-circle" width="120" height="120">
+                                        {% else %}
+                                            <i class="bi bi-person-circle" style="font-size: 120px;"></i>
+                                        {% endif %}
+                                        <label class="upload-btn" for="id_avatar">
+                                            <i class="bi bi-camera text-white"></i>
+                                        </label>
+                                        <input type="file" id="id_avatar" name="avatar" class="d-none" accept="image/*">
                                     </div>
+                                </div>
 
-                                    <!-- Profile Information -->
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label">First Name</label>
-                                            <input type="text" class="form-control" value="{{ user.first_name }}">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Last Name</label>
-                                            <input type="text" class="form-control" value="{{ user.last_name }}">
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label">Email</label>
-                                            <input type="email" class="form-control" value="{{ user.email }}">
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label">Bio</label>
-                                            <textarea class="form-control" rows="3">{{ user.bio }}</textarea>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Location</label>
-                                            <input type="text" class="form-control" value="{{ user.location }}">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Timezone</label>
-                                            <select class="form-select">
-                                                <option value="UTC">UTC</option>
-                                                <!-- Add more timezone options -->
-                                            </select>
-                                        </div>
-                                        <div class="col-12">
-                                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                                        </div>
+                                <!-- Profile Fields -->
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        {% bootstrap_field form.first_name %}
                                     </div>
-                                </form>
-                            </div>
+                                    <div class="col-md-6">
+                                        {% bootstrap_field form.last_name %}
+                                    </div>
+                                    <div class="col-12">
+                                        {% bootstrap_field form.email %}
+                                    </div>
+                                    <div class="col-12">
+                                        {% bootstrap_field form.bio %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% bootstrap_field form.location %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% bootstrap_field form.timezone %}
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+
+                                <!-- Social Links -->
+                                <h6 class="mb-3">Social Media Links</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        {% bootstrap_field form.facebook_url %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% bootstrap_field form.twitter_url %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% bootstrap_field form.instagram_url %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% bootstrap_field form.linkedin_url %}
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Security Settings -->
-                    <div class="tab-pane fade" id="security">
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Security Settings</h5>
-                            </div>
-                            <div class="card-body">
-                                <!-- Change Password -->
-                                <form id="passwordForm" class="mb-4">
-                                    <h6 class="mb-3">Change Password</h6>
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <label class="form-label">Current Password</label>
-                                            <input type="password" class="form-control">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">New Password</label>
-                                            <input type="password" class="form-control">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Confirm New Password</label>
-                                            <input type="password" class="form-control">
-                                        </div>
-                                        <div class="col-12">
-                                            <button type="submit" class="btn btn-primary">Update Password</button>
-                                        </div>
+                <!-- Security Tab -->
+                <div class="tab-pane fade" id="security">
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0">Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Password Change Form -->
+                            <form method="post" class="mb-4">
+                                {% csrf_token %}
+                                <h6 class="mb-3">Change Password</h6>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        {% bootstrap_field password_form.old_password %}
                                     </div>
-                                </form>
+                                    <div class="col-md-6">
+                                        {% bootstrap_field password_form.new_password1 %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% bootstrap_field password_form.new_password2 %}
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Password</button>
+                            </form>
 
-                                <!-- Two-Factor Authentication -->
-                                <div class="mb-4">
-                                    <h6 class="mb-3">Two-Factor Authentication</h6>
+                            <hr class="my-4">
+
+                            <!-- Two-Factor Authentication -->
+                            <h6 class="mb-3">Two-Factor Authentication</h6>
+                            <div class="card bg-light border-0 mb-4">
+                                <div class="card-body">
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="twoFactorToggle">
-                                        <label class="form-check-label" for="twoFactorToggle">Enable 2FA</label>
+                                        <input class="form-check-input" type="checkbox" id="twoFactorToggle"
+                                               {% if user.profile.two_factor_enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="twoFactorToggle">
+                                            Enable Two-Factor Authentication
+                                        </label>
                                     </div>
+                                    <p class="text-muted small mb-0 mt-2">
+                                        Add an extra layer of security to your account by requiring both your password 
+                                        and a verification code.
+                                    </p>
                                 </div>
+                            </div>
 
-                                <!-- Login History -->
-                                <div>
-                                    <h6 class="mb-3">Login History</h6>
-                                    <div class="table-responsive">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Device</th>
-                                                    <th>Location</th>
-                                                    <th>IP Address</th>
-                                                    <th>Time</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for login in login_history %}
-                                                <tr>
-                                                    <td>
-                                                        <i class="bi bi-laptop me-2"></i>
-                                                        {{ login.device }}
-                                                    </td>
-                                                    <td>{{ login.location }}</td>
-                                                    <td>{{ login.ip_address }}</td>
-                                                    <td>{{ login.timestamp|timesince }} ago</td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                            <!-- Login History -->
+                            <h6 class="mb-3">Recent Login Activity</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Device</th>
+                                            <th>Location</th>
+                                            <th>IP Address</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for login in login_history %}
+                                        <tr>
+                                            <td>
+                                                <i class="bi bi-{{ login.device_icon }} me-2"></i>
+                                                {{ login.device }}
+                                            </td>
+                                            <td>{{ login.location }}</td>
+                                            <td>{{ login.ip_address }}</td>
+                                            <td>{{ login.timestamp|timesince }} ago</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Additional settings tabs (Notifications, Billing, etc.) would go here -->
-                    
                 </div>
+
+                <!-- Other tabs (Notifications, Social, Billing, Privacy) would go here -->
+                
             </div>
         </div>
     </div>
@@ -188,31 +256,44 @@
 
 {% block extra_js %}
 <script>
-    // Profile picture upload preview
-    document.getElementById('avatarInput').addEventListener('change', function(e) {
+    // Profile picture preview
+    document.getElementById('id_avatar').addEventListener('change', function(e) {
         if (e.target.files && e.target.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.querySelector('.rounded-circle').src = e.target.result;
+                const img = document.querySelector('.avatar-upload img') || document.createElement('img');
+                img.src = e.target.result;
+                img.classList.add('rounded-circle');
+                img.width = 120;
+                img.height = 120;
+                img.alt = 'Profile';
+                
+                const icon = document.querySelector('.avatar-upload i.bi-person-circle');
+                if (icon) {
+                    icon.replaceWith(img);
+                }
             }
             reader.readAsDataURL(e.target.files[0]);
         }
     });
 
-    // Form submission handling
-    document.getElementById('profileForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        // Add your profile update logic here
-    });
-
-    document.getElementById('passwordForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        // Add your password update logic here
-    });
-
     // Two-factor authentication toggle
     document.getElementById('twoFactorToggle').addEventListener('change', function(e) {
         // Add your 2FA toggle logic here
+        const enabled = e.target.checked;
+        fetch('/api/update-2fa/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({ enabled })
+        }).then(response => {
+            if (!response.ok) {
+                e.target.checked = !enabled;
+                alert('Failed to update 2FA settings');
+            }
+        });
     });
 </script>
 {% endblock %}
