@@ -1,0 +1,387 @@
+<!-- credits/templates/credits/transaction_receipt.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Transaction Receipt{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .print-only {
+        display: block !important;
+    }
+}
+.receipt-border {
+    border: 1px solid #dee2e6;
+    padding: 2rem;
+    border-radius: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container print-container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Print Controls -->
+            <div class="text-end mb-4 no-print">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="bi bi-printer"></i> Print Receipt
+                </button>
+                <a href="{% url 'transaction_detail' transaction.reference_id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Details
+                </a>
+            </div>
+
+            <!-- Receipt Content -->
+            <div class="receipt-border">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <img src="{% static 'img/logo.png' %}" alt="Company Logo" height="60" class="mb-3">
+                    <h3>Transaction Receipt</h3>
+                    <p class="text-muted mb-0">Reference ID: {{ transaction.reference_id }}</p>
+                </div>
+
+                <hr>
+
+                <!-- Transaction Details -->
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <strong>Date:</strong><br>
+                        {{ transaction.created_at|date:"F j, Y" }}
+                    </div>
+                    <div class="col-6 text-end">
+                        <strong>Time:</strong><br>
+                        {{ transaction.created_at|date:"H:i:s" }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <strong>Customer:</strong><br>
+                        {{ transaction.user.get_full_name|default:transaction.user.username }}
+                    </div>
+                    <div class="col-6 text-end">
+                        <strong>Account ID:</strong><br>
+                        {{ transaction.user.id }}
+                    </div>
+                </div>
+
+                <!-- Transaction Summary -->
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Transaction Type</th>
+                            <td>{{ transaction.get_transaction_type_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>Amount</th>
+                            <td>৳{{ transaction.amount|floatformat:2|intcomma }}</td>
+                        </tr>
+                        {% if transaction.payment_method %}
+                        <tr>
+                            <th>Payment Method</th>
+                            <td>{{ transaction.get_payment_method_display }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Status</th>
+                            <td>
+                                <span class="badge {% if transaction.status == 'COMPLETED' %}bg-success
+                                            {% elif transaction.status == 'FAILED' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                    {{ transaction.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                {% if transaction.status == 'COMPLETED' %}
+                <!-- Balance Summary -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h5>Balance Summary</h5>
+                        <div class="row">
+                            <div class="col-6">Previous Balance</div>
+                            <div class="col-6 text-end">৳{{ transaction.initial_balance|floatformat:2|intcomma }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                {% if transaction.final_balance > transaction.initial_balance %}
+                                    Amount Added
+                                {% else %}
+                                    Amount Deducted
+                                {% endif %}
+                            </div>
+                            <div class="col-6 text-end">
+                                {% if transaction.final_balance > transaction.initial_balance %}
+                                    <span class="text-success">+</span>
+                                {% else %}
+                                    <span class="text-danger">-</span>
+                                {% endif %}
+                                ৳{{ transaction.amount|floatformat:2|intcomma }}
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row fw-bold">
+                            <div class="col-6">New Balance</div>
+                            <div class="col-6 text-end">৳{{ transaction.final_balance|floatformat:2|intcomma }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Additional Information -->
+                {% if transaction.notes %}
+                <div class="mb-4">
+                    <h5>Additional Information</h5>
+                    <p class="mb-0">{{ transaction.notes }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Footer -->
+                <hr>
+                <div class="row mt-4">
+                    <div class="col-md-8">
+                        <small class="text-muted">
+                            For any questions about this receipt, please contact support with the reference ID.
+                            <br>
+                            Email: support@example.com | Phone: +1234567890
+                        </small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <img src="{% static 'img/stamp.png' %}" alt="Digital Stamp" height="60">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- credits/templates/credits/balance_summary.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Balance Summary{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Main Balance Card -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="text-muted mb-2">Available Balance</h5>
+                    <h2 class="mb-3">৳{{ user.credit_balance|floatformat:2|intcomma }}</h2>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'recharge_balance' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Money
+                        </a>
+                        <a href="{% url 'transfer_money' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left-right"></i> Transfer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Distribution -->
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Balance Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Balance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Main Account</td>
+                                    <td>
+                                        <span class="badge bg-primary">Primary</span>
+                                    </td>
+                                    <td class="text-end">৳{{ user.credit_balance|floatformat:2|intcomma }}</td>
+                                    <td>
+                                        <a href="{% url 'recharge_balance' %}" class="btn btn-sm btn-outline-primary">
+                                            Add Money
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% for account in ad_accounts %}
+                                <tr>
+                                    <td>{{ account.account_name }}</td>
+                                    <td>
+                                        <span class="badge bg-info">Ad Account</span>
+                                    </td>
+                                    <td class="text-end">৳{{ account.credit_balance|floatformat:2|intcomma }}</td>
+                                    <td>
+                                        <a href="{% url 'transfer_money' %}?account={{ account.id }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            Transfer
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="2"><strong>Total Balance</strong></td>
+                                    <td class="text-end">
+                                        <strong>৳{{ total_balance|floatformat:2|intcomma }}</strong>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Summary -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Recent Activities</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for transaction in recent_transactions %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ transaction.get_transaction_type_display }}</h6>
+                                        <small class="text-muted">{{ transaction.created_at|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="{% if transaction.final_balance > transaction.initial_balance %}text-success{% else %}text-danger{% endif %}">
+                                            {% if transaction.final_balance > transaction.initial_balance %}+{% endif %}
+                                            ৳{{ transaction.amount|floatformat:2 }}
+                                        </div>
+                                        <span class="badge {% if transaction.status == 'COMPLETED' %}bg-success
+                                                    {% elif transaction.status == 'PENDING' %}bg-warning
+                                                    {% else %}bg-danger{% endif %}">
+                                            {{ transaction.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-clock-history display-4 text-muted"></i>
+                                <p class="text-muted mt-2">No recent activity</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if recent_transactions %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'transaction_history' %}" class="btn btn-link">View All Transactions</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Chart -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Balance Trend</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary active" data-period="week">Week</button>
+                            <button class="btn btn-sm btn-outline-primary" data-period="month">Month</button>
+                            <button class="btn btn-sm btn-outline-primary" data-period="year">Year</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="balanceChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('balanceChart').getContext('2d');
+    
+    // Example data - replace with actual data from backend
+    const chartData = {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Balance',
+            data: [1000, 1200, 900, 1500, 2000, 1800, 2200],
+            borderColor: '#0d6efd',
+            tension: 0.4,
+            fill: false
+        }]
+    };
+
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '৳' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Period selection handlers
+    document.querySelectorAll('[data-period]').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('[data-period]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Update chart data based on selected period
+            // You would typically fetch this data from the backend
+            updateChartData(this.dataset.period);
+        });
+    });
+
+    function updateChartData(period) {
+        // Add your chart update logic here
+        console.log('Updating chart for period:', period);
+    }
+});
+</script>
+{% endblock %}

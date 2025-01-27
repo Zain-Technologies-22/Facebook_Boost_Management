@@ -1,4 +1,48 @@
-<!-- credits/templates/credits/view_credits.html -->
+<!-- templates/credits/view_credits.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Credits{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Your Credits</h5>
+    </div>
+    <div class="card-body">
+        <div class="mb-4">
+            <h4 class="mb-2">Current Balance</h4>
+            <h2 class="text-primary mb-0">৳{{ credit.balance|floatformat:2 }}</h2>
+            <p class="text-muted">Your current credit balance.</p>
+            <a href="{% url 'recharge_balance' %}" class="btn btn-primary">Recharge Now</a>
+        </div>
+
+        <div>
+            <h5 class="mb-3">Recent Billing Transactions</h5>
+            {% if billing_transactions %}
+            <ul class="list-group">
+                {% for transaction in billing_transactions %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">{{ transaction.description }}</h6>
+                        <small class="text-muted">{{ transaction.timestamp|date:"d M Y" }} - {{ transaction.transaction_id }}</small>
+                    </div>
+                    <span class="badge bg-secondary">৳{{ transaction.amount }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No recent billing transactions found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+{% comment %} <!-- credits/templates/credits/view_credits.html -->
 
 {% extends 'base.html' %}
 {% load static %}
@@ -77,4 +121,5 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}
+

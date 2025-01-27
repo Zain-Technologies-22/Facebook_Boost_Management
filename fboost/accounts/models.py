@@ -1,14 +1,18 @@
 
-# Create your models here.
+# fboost/accounts/models.py
 from django.db import models
 from django.core.validators import URLValidator, RegexValidator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django import forms
 from django.conf import settings
-from django.utils import timezone
+from django.core.validators import MinValueValidator
+from decimal import Decimal
+import uuid
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+
 
 class CustomUser(AbstractUser):
     phone = models.CharField(max_length=15, blank=True, null=True)
@@ -117,6 +121,13 @@ class AdAccount(models.Model):
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Add credit balance field
+    credit_balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Account Balance"
+    )
 
     def __str__(self):
         return f"{self.account_name} ({self.user.username})"

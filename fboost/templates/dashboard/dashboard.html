@@ -1,5 +1,4 @@
-<!-- templates/credits/dashboard.html -->
-
+<!-- templates/dashboard/dashboard.html -->
 {% extends 'base.html' %}
 {% load humanize %}
 {% load static %}
@@ -25,9 +24,17 @@
         </div>
     </div>
 
+    <!-- Exchange Rate Ticker -->
+    <div class="rate-ticker-container">
+        <div class="rate-ticker">
+            Today's Exchange Rate: <span>$1 = ৳130</span>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Quick Stats -->
         <div class="row g-4 mb-4">
+            <!-- Active Campaigns Card -->
             <div class="col-md-6 col-xl-3">
                 <div class="card h-100">
                     <div class="card-body">
@@ -47,6 +54,7 @@
                 </div>
             </div>
 
+            <!-- Total Followers Card -->
             <div class="col-md-6 col-xl-3">
                 <div class="card h-100">
                     <div class="card-body">
@@ -66,6 +74,7 @@
                 </div>
             </div>
 
+            <!-- Engagement Rate Card -->
             <div class="col-md-6 col-xl-3">
                 <div class="card h-100">
                     <div class="card-body">
@@ -85,6 +94,7 @@
                 </div>
             </div>
 
+            <!-- Available Credits Card -->
             <div class="col-md-6 col-xl-3">
                 <div class="card h-100">
                     <div class="card-body">
@@ -94,10 +104,12 @@
                             </div>
                             <div>
                                 <h6 class="text-muted mb-1">Available Credits</h6>
-                                <h3 class="mb-0">{{ credit.balance }}</h3>
-                                <a href="{% url 'recharge_balance' %}" class="text-info">
-                                    <small>Add more</small>
-                                </a>
+                                <h3 class="mb-0">৳{{ user.credit_balance|floatformat:2|intcomma }}</h3>
+                                <div class="mt-2">
+                                    <a href="{% url 'recharge_balance' %}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-plus-circle me-1"></i> Add Credits
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -114,9 +126,9 @@
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Performance Overview</h5>
                         <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-outline-secondary active" data-bs-toggle="collapse" data-bs-target="#chartOptionsMonth">Month</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#chartOptionsQuarter">Quarter</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#chartOptionsYear">Year</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary active">Month</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Quarter</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Year</button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -181,10 +193,69 @@
                             <a href="{% url 'recharge_balance' %}" class="btn btn-outline-primary">
                                 <i class="bi bi-credit-card me-2"></i>Add Credits
                             </a>
+                            <a href="{% url 'transfer_money' %}" class="btn btn-outline-success">
+                                <i class="bi bi-arrow-left-right me-2"></i>Transfer Money
+                            </a>
                             <a href="{% url 'billing' %}" class="btn btn-outline-secondary">
                                 <i class="bi bi-wallet2 me-2"></i>Billing & Subscription
                             </a>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Recent Transactions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {% for transaction in recent_transactions|slice:":5" %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {% if transaction.transaction_type == 'RECHARGE' %}
+                                                <i class="bi bi-plus-circle text-success me-1"></i>
+                                            {% elif transaction.transaction_type == 'AD_DEPOSIT' %}
+                                                <i class="bi bi-arrow-right text-primary me-1"></i>
+                                            {% else %}
+                                                <i class="bi bi-arrow-left text-warning me-1"></i>
+                                            {% endif %}
+                                            {{ transaction.get_transaction_type_display }}
+                                        </h6>
+                                        <small class="text-muted">{{ transaction.created_at|timesince }} ago</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="{% if transaction.transaction_type == 'RECHARGE' %}text-success
+                                                    {% elif transaction.transaction_type == 'AD_DEPOSIT' %}text-danger
+                                                    {% else %}text-primary{% endif %}">
+                                            {% if transaction.transaction_type == 'RECHARGE' %}+{% endif %}
+                                            {% if transaction.transaction_type == 'AD_DEPOSIT' %}-{% endif %}
+                                            ৳{{ transaction.amount|floatformat:2 }}
+                                        </div>
+                                        <span class="badge {% if transaction.status == 'COMPLETED' %}bg-success
+                                                    {% elif transaction.status == 'PENDING' %}bg-warning
+                                                    {% else %}bg-danger{% endif %}">
+                                            {{ transaction.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-clock text-muted"></i>
+                                <p class="mb-0">No recent transactions</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if recent_transactions %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'transaction_history' %}" class="btn btn-sm btn-outline-primary w-100">
+                                View All Transactions
+                            </a>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -213,7 +284,7 @@
                     </div>
                 </div>
 
-                <!-- Billing Information -->
+                <!-- Billing Overview -->
                 <div class="card mt-4">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">Billing Overview</h5>
@@ -222,7 +293,6 @@
                         <p><strong>Total Billing Transactions:</strong> {{ billing_transactions.count }}</p>
                         <p><strong>Total Amount Billed:</strong> ৳{{ billing_total|default:"0" }}</p>
                         <p><strong>Pending Transactions:</strong> {{ billing_pending|default:"0" }}</p>
-                        <a href="{% url 'billing_history' %}" class="btn btn-sm btn-primary">View Billing History</a>
                     </div>
                 </div>
             </div>
@@ -231,23 +301,21 @@
 </div>
 
 <!-- New Campaign Modal -->
-<div class="modal fade" id="newCampaignModal" tabindex="-1" aria-labelledby="newCampaignModalLabel" aria-hidden="true">
+<div class="modal fade" id="newCampaignModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="newCampaignForm" method="post" action="
-            {% url 'create_campaign' %}
-            ">
+            <form id="newCampaignForm" method="post" action="{% url 'create_campaign' %}">
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title" id="newCampaignModalLabel">Create New Campaign</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Create New Campaign</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="campaign_name" class="form-label">Campaign Name</label>
                         <input type="text" class="form-control" id="campaign_name" name="name" required>
                     </div>
-                    <div class="mb-3">
+              <div class="mb-3">
                         <label for="campaign_type" class="form-label">Campaign Type</label>
                         <select class="form-select" id="campaign_type" name="campaign_type" required>
                             <option value="">Select campaign type</option>
@@ -265,7 +333,6 @@
                         <label for="target_audience" class="form-label">Target Audience</label>
                         <input type="text" class="form-control" id="target_audience" name="target_audience" placeholder="Enter keywords, hashtags">
                     </div>
-                    <!-- Add more fields as needed -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -279,7 +346,7 @@
 
 {% block extra_js %}
 <script>
-    // Performance Chart - Example Data, replace with dynamic data as needed
+    // Performance Chart
     const ctx = document.getElementById('performanceChart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
@@ -312,5 +379,129 @@
             }
         }
     });
+
+    // Real-time balance update
+     function updateBalance() {
+        fetch('{% url "get_balance" %}')
+            .then(response => response.json())
+            .then(data => {
+                const balanceElement = document.querySelector('.credit-balance');
+                if (balanceElement) {
+                    balanceElement.textContent = data.formatted_balance;
+                }
+            })
+            .catch(error => console.error('Error fetching balance:', error));
+    }
+
+    // Update balance every 30 seconds
+    setInterval(updateBalance, 30000);
+
+    // Update transaction status
+    function updateTransactionStatus() {
+        const pendingTransactions = document.querySelectorAll('[data-transaction-id]');
+        pendingTransactions.forEach(transaction => {
+            const id = transaction.dataset.transactionId;
+            fetch(`/api/transaction-status/${id}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== transaction.dataset.status) {
+                        location.reload();
+                    }
+                });
+        });
+    }
+
+    // Check pending transactions every minute
+    setInterval(updateTransactionStatus, 60000);
 </script>
+
+<style>
+.rate-ticker-container {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    overflow: hidden;
+    padding: 8px 0;
+}
+
+.rate-ticker {
+    white-space: nowrap;
+    animation: ticker 20s linear infinite;
+    display: inline-block;
+}
+
+@keyframes ticker {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.rate-ticker span {
+    color: #198754;
+    font-weight: 500;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-primary-soft {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.bg-success-soft {
+    background-color: rgba(25, 135, 84, 0.1);
+}
+
+.bg-warning-soft {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.bg-info-soft {
+    background-color: rgba(13, 202, 240, 0.1);
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -30px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.timeline-content {
+    position: relative;
+    padding-left: 15px;
+}
+
+.timeline-item:not(:last-child) .timeline-content:before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 24px;
+    bottom: -24px;
+    width: 2px;
+    background-color: #e9ecef;
+}
+</style>
 {% endblock %}

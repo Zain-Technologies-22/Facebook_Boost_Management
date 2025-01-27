@@ -1,4 +1,178 @@
 <!-- templates/includes/sidebar.html -->
+{% load static %}
+{% load humanize %}
+<div class="sidebar-header p-3 border-bottom">
+    <div class="d-flex align-items-center">
+        <img src="{% static 'img/logo.jpg' %}" alt="FBoost" height="30" class="me-2">
+        <span class="sidebar-title">FBoost</span>
+    </div>
+</div>
+
+<div class="sidebar-content p-3">
+    <!-- Balance Summary Card -->
+    <div class="card bg-light mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Available Balance</h6>
+                <a href="{% url 'view_credits' %}" class="text-primary">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <h4 class="mb-2">৳{{ user.credit_balance|floatformat:2|intcomma }}</h4>
+            <div class="btn-group btn-group-sm w-100">
+                <a href="{% url 'recharge_balance' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add
+                </a>
+                <a href="{% url 'transfer_money' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left-right"></i> Transfer
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav flex-column">
+        <!-- Dashboard Section -->
+        <div class="nav-section mb-3">
+            <small class="text-muted text-uppercase d-none d-lg-block">Main</small>
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span class="ms-2 d-none d-lg-inline">Dashboard</span>
+            </a>
+            <a href="{% url 'analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                <i class="bi bi-graph-up"></i>
+                <span class="ms-2 d-none d-lg-inline">Analytics</span>
+            </a>
+        </div>
+
+        <!-- Money Management Section -->
+        <div class="nav-section mb-3">
+            <small class="text-muted text-uppercase d-none d-lg-block">Money Management</small>
+            <a href="{% url 'recharge_balance' %}" class="nav-link {% if request.resolver_match.url_name == 'recharge_balance' %}active{% endif %}">
+                <i class="bi bi-plus-circle"></i>
+                <span class="ms-2 d-none d-lg-inline">Add Money</span>
+            </a>
+            <a href="{% url 'transfer_money' %}" class="nav-link {% if request.resolver_match.url_name == 'transfer_money' %}active{% endif %}">
+                <i class="bi bi-arrow-left-right"></i>
+                <span class="ms-2 d-none d-lg-inline">Transfer Money</span>
+            </a>
+            <a href="{% url 'transaction_history' %}" class="nav-link {% if request.resolver_match.url_name == 'transaction_history' %}active{% endif %}">
+                <i class="bi bi-clock-history"></i>
+                <span class="ms-2 d-none d-lg-inline">Transaction History</span>
+            </a>
+        </div>
+
+        <!-- Campaigns Section -->
+        <div class="nav-section mb-3">
+            <small class="text-muted text-uppercase d-none d-lg-block">Campaigns</small>
+            <a href="{% url 'campaigns' %}" class="nav-link {% if request.resolver_match.url_name == 'campaigns' %}active{% endif %}">
+                <i class="bi bi-megaphone"></i>
+                <span class="ms-2 d-none d-lg-inline">Campaigns</span>
+            </a>
+        </div>
+
+        <!-- AD Account Section -->
+        <div class="nav-section mb-3">
+            <small class="text-muted text-uppercase d-none d-lg-block">AD Account</small>
+            <a href="{% url 'my_ad_account' %}" class="nav-link {% if request.resolver_match.url_name == 'my_ad_account' %}active{% endif %}">
+                <i class="bi bi-folder"></i>
+                <span class="ms-2 d-none d-lg-inline">My AD Accounts</span>
+            </a>
+            <a href="{% url 'apply_ad_account' %}" class="nav-link {% if request.resolver_match.url_name == 'apply_ad_account' %}active{% endif %}">
+                <i class="bi bi-plus-square"></i>
+                <span class="ms-2 d-none d-lg-inline">Apply AD Account</span>
+            </a>
+        </div>
+
+        <!-- Billing Section -->
+        <div class="nav-section mb-3">
+            <small class="text-muted text-uppercase d-none d-lg-block">Billing</small>
+            <a href="{% url 'billing' %}" class="nav-link {% if request.resolver_match.url_name == 'billing' %}active{% endif %}">
+                <i class="bi bi-wallet2"></i>
+                <span class="ms-2 d-none d-lg-inline">Billing & Subscription</span>
+            </a>
+            <a href="{% url 'view_credits' %}" class="nav-link {% if request.resolver_match.url_name == 'view_credits' %}active{% endif %}">
+                <i class="bi bi-coin"></i>
+                <span class="ms-2 d-none d-lg-inline">Credits</span>
+            </a>
+        </div>
+
+        <!-- Account Section -->
+        <div class="nav-section mb-3">
+            <small class="text-muted text-uppercase d-none d-lg-block">Account</small>
+            <a href="{% url 'profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="bi bi-person"></i>
+                <span class="ms-2 d-none d-lg-inline">Profile</span>
+            </a>
+            <a href="{% url 'settings' %}" class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                <i class="bi bi-gear"></i>
+                <span class="ms-2 d-none d-lg-inline">Settings</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Recent Transactions -->
+    <div class="mt-4">
+        <h6 class="text-muted mb-3">Recent Transactions</h6>
+        <div class="recent-transactions">
+            {% for transaction in recent_transactions|slice:":5" %}
+            <div class="transaction-item p-2 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="d-block">
+                            {% if transaction.transaction_type == 'RECHARGE' %}
+                                <i class="bi bi-plus-circle text-success"></i> Recharge
+                            {% elif transaction.transaction_type == 'AD_DEPOSIT' %}
+                                <i class="bi bi-arrow-right text-primary"></i> Ad Deposit
+                            {% elif transaction.transaction_type == 'AD_WITHDRAW' %}
+                                <i class="bi bi-arrow-left text-warning"></i> Ad Withdraw
+                            {% endif %}
+                        </small>
+                        <small class="text-muted d-block">{{ transaction.created_at|timesince }} ago</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="{% if transaction.transaction_type == 'RECHARGE' %}text-success
+                                     {% elif transaction.transaction_type == 'AD_DEPOSIT' %}text-danger
+                                     {% else %}text-primary{% endif %}">
+                            {% if transaction.transaction_type == 'RECHARGE' %}+{% endif %}
+                            {% if transaction.transaction_type == 'AD_DEPOSIT' %}-{% endif %}
+                            ৳{{ transaction.amount|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-3">
+                <i class="bi bi-clock"></i>
+                <p class="small mb-0">No recent transactions</p>
+            </div>
+            {% endfor %}
+
+            {% if recent_transactions %}
+            <div class="text-center mt-3">
+                <a href="{% url 'transaction_history' %}" class="btn btn-sm btn-light w-100">
+                    View All Transactions
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add this CSS to your custom.css file -->
+<style>
+.sidebar-content .card {
+    border-radius: 0.5rem;
+}
+.transaction-item:last-child {
+    border-bottom: none !important;
+}
+.recent-transactions {
+    max-height: 300px;
+    overflow-y: auto;
+}
+</style>
+
+{% comment %} <!-- templates/includes/sidebar.html -->
 {% load static %} 
 <div class="sidebar-header p-3 border-bottom">
     <div class="d-flex align-items-center">
@@ -43,8 +217,8 @@
                 <i class="bi bi-wallet2"></i>
                 <span class="ms-2 d-none d-lg-inline">Billing & Subscription</span>
             </a>
-            <a href="{% url 'billing_history' %}" class="nav-link {% if request.resolver_match.url_name == 'billing_history' %}active{% endif %}">
-                <i class="bi bi-clock-history"></i>
+            {% comment %} <a href="{% url 'billing_history' %}" class="nav-link {% if request.resolver_match.url_name == 'billing_history' %}active{% endif %}"> {% endcomment %}
+                {% comment %} <i class="bi bi-clock-history"></i>
                 <span class="ms-2 d-none d-lg-inline">Billing History</span>
             </a>
         </div>
@@ -62,14 +236,14 @@
             </a>
             <a href="
             {% comment %} {% url 'transfer_account' %} {% endcomment %}
-            " class="nav-link {% if request.resolver_match.url_name == 'transfer_account' %}active{% endif %}">
+            {% comment %} " class="nav-link {% if request.resolver_match.url_name == 'transfer_account' %}active{% endif %}">
                 <i class="bi bi-arrow-left-right"></i>
                 <span class="ms-2 d-none d-lg-inline">Transfer Account</span>
             </a>
-        </div>
+        </div> {% endcomment %}
 
         <!-- Account Section -->
-        <div class="nav-section mb-3">
+        {% comment %} <div class="nav-section mb-3">
             <small class="text-muted text-uppercase d-none d-lg-block">Account</small>
             <a href="{% url 'view_credits' %}" class="nav-link {% if request.resolver_match.url_name == 'view_credits' %}active{% endif %}">
                 <i class="bi bi-coin"></i>
@@ -82,7 +256,7 @@
             <a href="{% url 'settings' %}" class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
                 <i class="bi bi-gear"></i>
                 <span class="ms-2 d-none d-lg-inline">Settings</span>
-            </a>
-        </div>
+            </a> {% endcomment %}
+        {% comment %} </div>
     </nav>
-</div>
+</div> {% endcomment %} 

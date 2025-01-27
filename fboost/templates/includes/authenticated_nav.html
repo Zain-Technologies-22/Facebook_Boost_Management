@@ -1,4 +1,132 @@
+{% load static %}
+{% load humanize %}
 <!-- credits/templates/includes/authenticated_nav.html -->
+
+<ul class="navbar-nav ms-auto">
+    <!-- Notifications -->
+    <li class="nav-item dropdown me-3">
+        <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-bell"></i>
+            {% if unread_notifications_count %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ unread_notifications_count }}
+                <span class="visually-hidden">unread notifications</span>
+            </span>
+            {% endif %}
+        </a>
+        <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+            {% if notifications %}
+                {% for notification in notifications|slice:":5" %}
+                <a class="dropdown-item {% if notification.type == 'money' %}bg-light{% endif %}" 
+                   href="{{ notification.url }}">
+                    {% if notification.type == 'money' %}
+                        <i class="bi bi-coin text-primary me-2"></i>
+                    {% elif notification.type == 'campaign' %}
+                        <i class="bi bi-megaphone text-success me-2"></i>
+                    {% elif notification.type == 'alert' %}
+                        <i class="bi bi-exclamation-circle text-warning me-2"></i>
+                    {% endif %}
+                    <div>
+                        <p class="mb-0">{{ notification.message }}</p>
+                        <small class="text-muted">{{ notification.timestamp|timesince }} ago</small>
+                    </div>
+                </a>
+                {% endfor %}
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item text-center" href="{% url 'notifications' %}">View all</a>
+            {% else %}
+                <div class="dropdown-item text-center py-3">
+                    <i class="bi bi-bell-slash text-muted mb-2"></i>
+                    <p class="mb-0">No new notifications</p>
+                </div>
+            {% endif %}
+        </div>
+    </li>
+
+    <!-- Balance Display -->
+    <li class="nav-item me-3">
+        <a class="nav-link" href="{% url 'view_credits' %}" id="creditBalance">
+            <i class="bi bi-wallet2"></i>
+           <!--<span class="ms-1">৳{{ user.credit_balance|floatformat:2|intcomma }}</span> -->
+           <!-- In authenticated_nav.html -->
+          <span class="ms-1">৳{{ user.credit_balance|floatformat:2 }}</span>
+        </a>
+    </li>
+
+    <!-- Quick Actions -->
+    <li class="nav-item me-3">
+        <div class="btn-group">
+            <a href="{% url 'recharge_balance' %}" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-circle"></i> Add Money
+            </a>
+            <a href="{% url 'transfer_money' %}" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-arrow-left-right"></i> Transfer
+            </a>
+        </div>
+    </li>
+
+    <!-- User Menu -->
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+            {% else %}
+                <i class="bi bi-person-circle me-2"></i>
+            {% endif %}
+            <span class="d-none d-lg-inline">{{ user.username }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="{% url 'profile' %}">
+                    <i class="bi bi-person me-2"></i>Profile
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="{% url 'settings' %}">
+                    <i class="bi bi-gear me-2"></i>Settings
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="{% url 'billing' %}">
+                    <i class="bi bi-credit-card me-2"></i>Billing
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<!-- Add this JavaScript at the bottom -->
+<script>
+// Function to update balance display
+function updateBalance() {
+        fetch('{% url "get_balance" %}')
+            .then(response => response.json())
+            .then(data => {
+                const balanceElement = document.getElementById('creditBalance');
+                if (balanceElement) {
+                    balanceElement.querySelector('span').textContent = data.formatted_balance;
+                }
+            })
+            .catch(error => console.error('Error fetching balance:', error));
+    }
+
+    // Update balance every 30 seconds
+    setInterval(updateBalance, 30000);
+
+// Listen for balance update events
+window.addEventListener('balanceUpdated', updateBalance);
+</script>
+
+{% comment %} <!-- credits/templates/includes/authenticated_nav.html -->
 
 <ul class="navbar-nav ms-auto">
     <!-- Notifications -->
@@ -68,4 +196,4 @@
             </li>
         </ul>
     </li>
-</ul>
+</ul> {% endcomment %}

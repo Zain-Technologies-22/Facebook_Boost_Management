@@ -1,0 +1,185 @@
+<!-- credits/templates/credits/transfer_money.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+{% block title %}Transfer Money{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Transfer Form -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Transfer Money</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading">Available Balance</h5>
+                        <p class="display-6 mb-0">৳{{ user.credit_balance|floatformat:2|intcomma }}</p>
+                    </div>
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <h5>Transfer Details</h5>
+                            {{ form.ad_account|as_crispy_field }}
+                            {{ form.amount|as_crispy_field }}
+                            {{ form.transaction_type|as_crispy_field }}
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <h6 class="alert-heading">Important Notice</h6>
+                            <ul class="mb-0">
+                                <li>Transfers are processed immediately</li>
+                                <li>Make sure you have sufficient balance</li>
+                                <li>This action cannot be undone</li>
+                            </ul>
+                        </div>
+
+                        {{ form.confirm_transfer|as_crispy_field }}
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="submitButton" disabled>
+                                Confirm Transfer
+                            </button>
+                            <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transfers -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Recent Transfers</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_transfers %}
+                        <div class="list-group list-group-flush">
+                            {% for transfer in recent_transfers %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {% if transfer.transaction_type == 'AD_DEPOSIT' %}
+                                                    <i class="bi bi-arrow-right text-success"></i>
+                                                {% else %}
+                                                    <i class="bi bi-arrow-left text-danger"></i>
+                                                {% endif %}
+                                                {{ transfer.ad_account.account_name }}
+                                            </h6>
+                                            <small class="text-muted">
+                                                {{ transfer.created_at|date:"M d, Y H:i" }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="{% if transfer.transaction_type == 'AD_DEPOSIT' %}text-danger{% else %}text-success{% endif %}">
+                                                {% if transfer.transaction_type == 'AD_DEPOSIT' %}-{% else %}+{% endif %}
+                                                ৳{{ transfer.amount|floatformat:2 }}
+                                            </div>
+                                            <span class="badge {% if transfer.status == 'COMPLETED' %}bg-success
+                                                        {% elif transfer.status == 'PENDING' %}bg-warning
+                                                        {% elif transfer.status == 'FAILED' %}bg-danger
+                                                        {% else %}bg-secondary{% endif %}">
+                                                {{ transfer.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'transfer_history' %}" class="btn btn-link">View All Transfers</a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-arrow-left-right display-4 text-muted"></i>
+                            <p class="text-muted mt-2">No recent transfers</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submitButton');
+    const confirmCheckbox = document.getElementById('id_confirm_transfer');
+    const amountInput = document.getElementById('id_amount');
+    const typeSelect = document.getElementById('id_transaction_type');
+    const accountSelect = document.getElementById('id_ad_account');
+    
+    function validateForm() {
+        if (!confirmCheckbox.checked) {
+            submitButton.disabled = true;
+            return;
+        }
+        
+        const amount = parseFloat(amountInput.value);
+        const userBalance = {{ user.credit_balance|stringformat:"f" }};
+        const type = typeSelect.value;
+        
+        if (type === 'AD_DEPOSIT' && amount > userBalance) {
+            submitButton.disabled = true;
+            amountInput.setCustomValidity('Insufficient balance');
+            return;
+        }
+        
+        amountInput.setCustomValidity('');
+        submitButton.disabled = false;
+    }
+
+    // Add event listeners
+    form.addEventListener('change', validateForm);
+    amountInput.addEventListener('input', validateForm);
+    confirmCheckbox.addEventListener('change', validateForm);
+    typeSelect.addEventListener('change', validateForm);
+    
+    // Form submission handler
+    form.addEventListener('submit', function(e) {
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Initialize validation state
+    validateForm();
+    
+    // Auto-update ad account balance display if applicable
+    if (accountSelect) {
+        accountSelect.addEventListener('change', function() {
+            const selectedOption = accountSelect.options[accountSelect.selectedIndex];
+            const accountBalance = selectedOption.dataset.balance;
+            if (accountBalance) {
+                document.getElementById('account-balance').textContent = 
+                    `৳${parseFloat(accountBalance).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

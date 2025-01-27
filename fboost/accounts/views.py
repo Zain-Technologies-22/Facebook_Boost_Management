@@ -9,6 +9,7 @@ from .models import AdAccount, LoginHistory
 from .forms import ApplyAdAccountForm, TransferAdAccountForm
 from .forms import ProfileForm 
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import Group
 
 
 @login_required
@@ -107,6 +108,10 @@ def signup_view(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # Add user to web_reg_user group
+            web_reg_group = Group.objects.get(name='web_reg_user')
+            user.groups.add(web_reg_group)
+
             login(request, user)
             messages.success(request, 'Account created successfully!')
             return redirect('dashboard')

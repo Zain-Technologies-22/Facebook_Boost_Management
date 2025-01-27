@@ -1,4 +1,4 @@
-# your_app/context_processors.py
+# dashboard/context_processors.py
 from datetime import datetime
 
 def current_year(request):

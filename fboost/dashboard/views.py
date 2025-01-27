@@ -1,19 +1,55 @@
+#fboost/dashboard/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib import messages
 from .forms import SignUpForm
-
+from django.db.models import Sum
+from credits.models import MoneyTransaction, TransactionTypes, TransactionStatus
 
 def index_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     return render(request, 'index.html')
 
+# @login_required
+# def dashboard_view(request):
+#     return render(request, 'dashboard/dashboard.html')
+# dashboard/views.py
+
 @login_required
 def dashboard_view(request):
-    return render(request, 'dashboard/dashboard.html')
+    # Get recent transactions
+    recent_transactions = MoneyTransaction.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:5]
 
+    # Calculate billing statistics
+    billing_transactions = MoneyTransaction.objects.filter(
+        user=request.user,
+        transaction_type=TransactionTypes.BILLING
+    )
+    
+    billing_total = billing_transactions.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    
+    billing_pending = billing_transactions.filter(
+        status=TransactionStatus.PENDING
+    ).count()
+
+    context = {
+        'active_campaigns_count': 0,  # Replace with actual campaign count
+        'total_followers': 0,  # Replace with actual followers count
+        'engagement_rate': 0,  # Replace with actual engagement rate
+        'recent_transactions': recent_transactions,
+        'billing_transactions': billing_transactions,
+        'billing_total': billing_total,
+        'billing_pending': billing_pending,
+        # Add other context data as needed
+    }
+    
+    return render(request, 'dashboard/dashboard.html', context)
 
 @login_required
 def credits(request):

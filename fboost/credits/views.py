@@ -1,268 +1,301 @@
 # credits/views.py
-
+from accounts.models import AdAccount
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import RechargeForm, BillingTransactionForm
-from .models import RechargeTransaction, BillingTransaction, PaymentMethod, Credit, UserPaymentMethod
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import JsonResponse, HttpResponse
-from django.urls import reverse
-from .utils import generate_invoice_pdf, upload_invoice
+from django.db.models import Q
+from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .models import (
+    MoneyTransaction,
+    TransactionTypes,
+    TransactionStatus,
+    PaymentMethod,
+    RechargeProof,
+)
+from .forms import (
+    RechargeForm,
+    BillingTransactionForm,
+    AdAccountMoneyTransferForm,
+)
 import json
-import os
-from django.conf import settings
 
 @login_required
 def recharge_balance(request):
-    """
-    View to handle the recharge form submission with comprehensive validation
-    """
+    """Handle recharge form submission"""
     if request.method == 'POST':
-        form = RechargeForm(request.POST, request.FILES)
+        form = RechargeForm(request.user, request.POST, request.FILES)
         if form.is_valid():
             try:
-                # Save the form but don't commit yet
-                recharge_transaction = form.save(commit=False)
-                recharge_transaction.user = request.user  # Set the user
-                recharge_transaction.save()  # Now save with all fields
-                
-                # Update Credit balance (only if you want to update immediately)
-                # Note: You might want to wait for admin approval before updating balance
-                credit, created = Credit.objects.get_or_create(user=request.user)
-                credit.balance += recharge_transaction.amount
-                credit.save()
-                
+                transaction = form.save()
                 messages.success(request, "Recharge request submitted successfully! Awaiting confirmation.")
-                return redirect('recharge_history')
+                return redirect('recharge_details', transaction_id=transaction.reference_id)
             except Exception as e:
                 messages.error(request, f"Error processing your recharge: {str(e)}")
-        else:
-            # Form is invalid, display errors
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error}")
     else:
-        form = RechargeForm()  # Create new form for GET request
+        form = RechargeForm(request.user)
     
-    # Add any additional context needed for the template
-    context = {
-        'form': form,
-        'payment_methods': PaymentMethod.choices,
-        'min_amount': 50,  # Matches the form's min_value
-        'max_amount': 100000,  # Matches the form's max_value
-    }
-    
-    return render(request, 'credits/recharge_balance.html', context)
+    return render(request, 'credits/recharge_balance.html', {'form': form})
 
 @login_required
-def recharge_history(request):
-    """
-    View to display recharge transaction history with pagination
-    """
-    transactions = RechargeTransaction.objects.filter(user=request.user).order_by('-timestamp')
-    
-    paginator = Paginator(transactions, 10)  # 10 recharge transactions per page
-    page = request.GET.get('page')
-    
-    try:
-        transactions = paginator.page(page)
-    except PageNotAnInteger:
-        transactions = paginator.page(1)
-    except EmptyPage:
-        transactions = paginator.page(paginator.num_pages)
-    
-    context = {
-        'transactions': transactions,
-    }
-    
-    return render(request, 'credits/recharge_history.html', context)
-
-@login_required
-def recharge_details(request, transaction_id):
-    """
-    View to display details of a specific recharge transaction
-    """
-    transaction = get_object_or_404(RechargeTransaction, transaction_id=transaction_id, user=request.user)
+def recharge_details(request, reference_id):
+    """Show details of a specific recharge transaction"""
+    transaction = get_object_or_404(
+        MoneyTransaction,
+        reference_id=reference_id,
+        user=request.user
+    )
     return render(request, 'credits/recharge_details.html', {'transaction': transaction})
+
 
 @login_required
 def billing_view(request):
-    """
-    Integrated Billing and Subscription view with tabs for current plan, payment methods, recharge history, and billing history
-    """
-    # Fetch user-related billing information
-    try:
-        credit = Credit.objects.get(user=request.user)
-    except Credit.DoesNotExist:
-        credit = Credit.objects.create(user=request.user, balance=0.00)
+    """Main billing and subscription view"""
+    # Get all transactions first
+    all_transactions = MoneyTransaction.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
     
-    # Fetch other billing-related data
-    # Assume user has a 'plan' attribute; adjust based on your actual user model
-    plan = getattr(request.user, 'plan', None)  # Replace with actual plan retrieval
+    # Calculate billing totals before pagination
+    billing_total = all_transactions.filter(
+        transaction_type=TransactionTypes.BILLING,
+        status=TransactionStatus.COMPLETED
+    ).count()
     
-    # Fetch user payment methods
-    user_payment_methods = request.user.payment_methods.all()  # Adjust related_name if necessary
+    billing_pending = all_transactions.filter(
+        transaction_type=TransactionTypes.BILLING,
+        status=TransactionStatus.PENDING
+    ).count()
     
-    # Fetch recharge and billing transactions
-    transactions = RechargeTransaction.objects.filter(user=request.user).order_by('-timestamp')
-    billing_transactions = BillingTransaction.objects.filter(user=request.user).order_by('-timestamp')
-    
-    # Calculate credit usage percentage (Assuming 'plan.credits' exists)
-    if plan and hasattr(plan, 'credits') and plan.credits > 0:
-        # Replace `credits_used` with actual logic to calculate used credits
-        credits_used = getattr(credit, 'balance', 0)
-        credits_percentage = min((credits_used / plan.credits) * 100, 100)
-    else:
-        credits_percentage = 0
+    # Then paginate
+    paginator = Paginator(all_transactions, 10)
+    page = request.GET.get('page')
+    transactions = paginator.get_page(page)
     
     context = {
-        'plan': plan,
-        'user_payment_methods': user_payment_methods,
         'transactions': transactions,
-        'billing_transactions': billing_transactions,
-        'credit': credit,
-        'credits_percentage': credits_percentage,
+        'recent_transactions': all_transactions[:5],  # Get first 5 from unpaginated queryset
+        'billing_total': billing_total,
+        'billing_pending': billing_pending
     }
     
     return render(request, 'credits/billing.html', context)
 
 @login_required
-def billing_history(request):
-    """
-    View to display billing transaction history with pagination
-    """
-    transactions = BillingTransaction.objects.filter(user=request.user).order_by('-timestamp')
+def create_billing_transaction(request):
+    """Create a new billing transaction"""
+    if request.method == 'POST':
+        form = BillingTransactionForm(request.user, request.POST)
+        if form.is_valid():
+            try:
+                transaction = form.save()
+                messages.success(request, "Billing transaction created successfully!")
+                return redirect('billing')
+            except Exception as e:
+                messages.error(request, f"Error creating billing transaction: {str(e)}")
+    else:
+        form = BillingTransactionForm(request.user)
     
-    paginator = Paginator(transactions, 10)  # 10 billing transactions per page
+    return render(request, 'credits/create_billing_transaction.html', {'form': form})
+
+@login_required
+def download_invoice(request, reference_id):
+    """Download invoice for a transaction"""
+    transaction = get_object_or_404(
+        MoneyTransaction,
+        reference_id=reference_id,
+        user=request.user
+    )
+    # Add your invoice generation logic here
+    messages.info(request, "Invoice generation will be available soon.")
+    return redirect('billing')
+
+@login_required
+def add_payment_method(request):
+    """Add a new payment method"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        payment_method = data.get('payment_method')
+        
+        if payment_method not in dict(PaymentMethod.choices):
+            return JsonResponse({'success': False, 'error': 'Invalid payment method.'})
+            
+        try:
+            # Add your payment method creation logic here
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+@login_required
+def set_default_payment(request):
+    """Set a payment method as default"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        # Add your default payment setting logic here
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+@login_required
+def remove_payment_method(request, payment_id):
+    """Remove a payment method"""
+    if request.method == 'POST':
+        # Add your payment method removal logic here
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+@login_required
+def view_credits(request):
+    """View user's current credit balance and transactions"""
+    transactions = MoneyTransaction.objects.filter(
+        user=request.user
+    ).order_by('-created_at')[:5]
+    
+    context = {
+        'credit': request.user.credit_balance,
+        'recent_transactions': transactions
+    }
+    
+    return render(request, 'credits/view_credits.html', context)
+
+@login_required
+def transfer_money(request):
+    """Handle money transfers between accounts"""
+    if request.method == 'POST':
+        form = AdAccountMoneyTransferForm(request.user, request.POST)
+        if form.is_valid():
+            try:
+                transaction = form.save(commit=False)
+                transaction.initial_balance = request.user.credit_balance 
+                transaction = form.save()
+                messages.success(request, "Transfer request submitted successfully!")
+                return redirect('transfer_history')
+            except Exception as e:
+                messages.error(request, f"Error processing transfer: {str(e)}")
+    else:
+        form = AdAccountMoneyTransferForm(request.user)
+    
+    return render(request, 'credits/transfer_money.html', {'form': form})
+
+@login_required
+def transfer_history(request):
+    """View transfer transaction history"""
+    transfers = MoneyTransaction.objects.filter(
+        user=request.user,
+        transaction_type__in=[
+            TransactionTypes.AD_ACCOUNT_DEPOSIT,
+            TransactionTypes.AD_ACCOUNT_WITHDRAW
+        ]
+    ).order_by('-created_at')
+    
+    paginator = Paginator(transfers, 10)
     page = request.GET.get('page')
+    transfers = paginator.get_page(page)
     
+    return render(request, 'credits/transfer_history.html', {'transfers': transfers})
+
+@login_required
+def transaction_status(request, reference_id):
+    """API endpoint to check transaction status"""
+    transaction = get_object_or_404(
+        MoneyTransaction,
+        reference_id=reference_id,
+        user=request.user
+    )
+    
+    return JsonResponse({
+        'status': transaction.get_status_display(),
+        'updated_at': transaction.updated_at.isoformat(),
+        'final_balance': float(transaction.final_balance) if transaction.final_balance else None,
+    })
+
+@login_required
+def transaction_history(request):
+    """View for all transactions history"""
+    transactions = MoneyTransaction.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Add filtering by type if needed
+    transaction_type = request.GET.get('type')
+    if transaction_type:
+        transactions = transactions.filter(transaction_type=transaction_type)
+
+    # Add filtering by status if needed
+    status = request.GET.get('status')
+    if status:
+        transactions = transactions.filter(status=status)
+
+    # Paginate results
+    paginator = Paginator(transactions, 10)  # 10 items per page
+    page = request.GET.get('page')
     try:
         transactions = paginator.page(page)
     except PageNotAnInteger:
         transactions = paginator.page(1)
     except EmptyPage:
         transactions = paginator.page(paginator.num_pages)
-    
+
     context = {
-        'billing_transactions': transactions,
+        'transactions': transactions,
+        'transaction_types': TransactionTypes.choices,
     }
     
-    return render(request, 'credits/billing_history.html', context)
+    return render(request, 'credits/recharge_history.html', context)
 
 @login_required
-def create_billing_transaction(request):
-    """
-    View to handle the creation of a billing transaction, such as plan upgrades
-    """
-    if request.method == 'POST':
-        form = BillingTransactionForm(request.POST)
-        if form.is_valid():
-            try:
-                billing_transaction = form.save(commit=False)
-                billing_transaction.user = request.user
-                billing_transaction.save()
-                
-                # Generate invoice
-                invoice_pdf = generate_invoice_pdf(billing_transaction)
-                invoice_url = upload_invoice(billing_transaction, invoice_pdf)
-                billing_transaction.invoice_url = invoice_url
-                billing_transaction.save()
-                
-                messages.success(request, "Billing transaction created successfully!")
-                return redirect('billing_history')
-            except Exception as e:
-                messages.error(request, f"Error creating billing transaction: {e}")
-        else:
-            messages.error(request, "Please correct the errors below.")
-    else:
-        form = BillingTransactionForm()
+def transaction_detail(request, reference_id):
+    """View for individual transaction details"""
+    transaction = get_object_or_404(
+        MoneyTransaction,
+        reference_id=reference_id,
+        user=request.user
+    )
+    return render(request, 'credits/transaction_detail.html', {'transaction': transaction})
+
+@login_required
+def add_money_to_account(request, account_id):
+    """Handle adding money to ad account"""
+    ad_account = get_object_or_404(AdAccount, id=account_id, user=request.user)
     
-    return render(request, 'credits/create_billing_transaction.html', {'form': form})
-
-@login_required
-def download_invoice(request, transaction_id):
-    """
-    View to download the invoice PDF for a specific billing transaction
-    """
-    transaction = get_object_or_404(BillingTransaction, transaction_id=transaction_id, user=request.user)
-    if transaction.invoice_url:
-        return redirect(transaction.invoice_url)
-    else:
-        messages.error(request, "Invoice not available.")
-        return redirect('billing_history')
-
-@login_required
-def add_payment_method(request):
-    """
-    View to handle adding a new payment method via AJAX
-    """
     if request.method == 'POST':
-        data = json.loads(request.body)
-        payment_type = data.get('payment_method')
-        if payment_type not in dict(PaymentMethod.choices):
-            return JsonResponse({'success': False, 'error': 'Invalid payment method.'})
         try:
-            # Assuming a UserPaymentMethod model exists linking users to payment methods
-            # Replace with your actual implementation
-            UserPaymentMethod.objects.create(user=request.user, payment_method=payment_type, is_default=False)
-            messages.success(request, "Payment method added successfully!")
-            return JsonResponse({'success': True})
+            amount = Decimal(request.POST.get('amount', '0'))
+            
+            # Validate amount
+            if amount <= 0:
+                raise ValueError("Amount must be greater than zero")
+                
+            # Check user balance
+            if request.user.credit_balance < amount:
+                messages.error(request, "Insufficient balance in your main account")
+                return redirect('my_ad_account')
+                
+            # Create transaction
+            transaction = MoneyTransaction.objects.create(
+                user=request.user,
+                ad_account=ad_account,
+                amount=amount,
+                transaction_type=TransactionTypes.AD_ACCOUNT_DEPOSIT,
+                initial_balance=request.user.credit_balance,
+                status=TransactionStatus.PENDING
+            )
+            
+            messages.success(request, f"Added ৳{amount} to {ad_account.account_name}")
+            return redirect('transaction_detail', reference_id=transaction.reference_id)
+            
+        except (ValueError, TypeError) as e:
+            messages.error(request, str(e))
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+            messages.error(request, "An error occurred while processing your request")
+    
+    return redirect('my_ad_account')
 
 @login_required
-def set_default_payment(request):
-    """
-    View to set a payment method as default via AJAX
-    """
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        payment_id = data.get('payment_id')
-        try:
-            payment_method = UserPaymentMethod.objects.get(id=payment_id, user=request.user)
-            # Reset all other payment methods to non-default
-            UserPaymentMethod.objects.filter(user=request.user).update(is_default=False)
-            payment_method.is_default = True
-            payment_method.save()
-            return JsonResponse({'success': True})
-        except UserPaymentMethod.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Payment method does not exist.'})
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
-@login_required
-def remove_payment_method(request, payment_id):
-    """
-    View to remove a payment method via AJAX
-    """
-    if request.method == 'POST':
-        try:
-            payment_method = UserPaymentMethod.objects.get(id=payment_id, user=request.user)
-            payment_method.delete()
-            messages.success(request, "Payment method removed successfully!")
-            return JsonResponse({'success': True})
-        except UserPaymentMethod.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Payment method does not exist.'})
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
-
-
-
-@login_required
-def view_credits(request):
-    """
-    Display the user's current credit balance and related information.
-    """
-    try:
-        credit = Credit.objects.get(user=request.user)
-    except Credit.DoesNotExist:
-        credit = Credit.objects.create(user=request.user, balance=0.00)
-    
-    billing_transactions = BillingTransaction.objects.filter(user=request.user).order_by('-timestamp')[:5]  # Example: latest 5 billing transactions
-    
-    context = {
-        'credit': credit,
-        'billing_transactions': billing_transactions,
-    }
-    
-    return render(request, 'credits/view_credits.html', context)
+def get_balance(request):
+    """API endpoint to get current user balance"""
+    return JsonResponse({
+        'balance': float(request.user.credit_balance),
+        'formatted_balance': f"৳{request.user.credit_balance:,.2f}"
+    })
